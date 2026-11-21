@@ -21,11 +21,11 @@ Fuera de alcance de esta entrega (Fase 3+): overlay OBS `/overlay/[gameId]` comp
 
 ## Tasks
 
-- T1 — Limpieza del template de fútbol y configuración del repo (S3, S11) — inline — **hecho**. 37 archivos de fútbol eliminados; `middleware.ts` → `proxy.ts` (convención Next 16); `.gitattributes`, `.prettierrc` EOL `auto`, `tsconfig.tsbuildinfo` destrackeado.
-- T2 — Identidad visual IKODEPORTES + i18n ES/PT/EN + shell navegable (S1, S2, S4, S12) — inline — **hecho**. Tokens oklch, `font-display`, `BrandLogo`/`BrandWordmark`, landing, header, footer, login, `/games`, `/games/[gameId]`.
-- T3 — Contrato canónico `shared/types/baseball-state.ts` + fixture demo + consumidor mínimo (S5) — inline — **hecho**. Contrato + `shared/realtime/contract.ts` + `shared/fixtures/demo-game.ts`; consumidores: web y API.
-- T4 — `prisma/schema.prisma` + esqueleto backend Express/Socket.IO (S6) — inline — **hecho**. Schema válido, migración inicial generada, API con `/health` y rooms.
-- T5 — Dockerfile multi-stage + compose test/prod + docs Dokploy (S7, S8, S9, S10) — inline — **hecho**. Imágenes `web`/`api`, compose validado con `docker compose config`.
+- T1 — Limpieza del template de fútbol y configuración del repo (S3, S11) — inline — **hecho**. 37 archivos de fútbol eliminados; `middleware.ts` → `proxy.ts` (convención Next 16); `.gitattributes`, `.prettierrc` EOL `auto`, `tsconfig.tsbuildinfo` destrackeado. Commit `eb66087`.
+- T2 — Identidad visual IKODEPORTES + i18n ES/PT/EN + shell navegable (S1, S2, S4, S12) — inline — **hecho**. Tokens oklch, `font-display`, `BrandLogo`/`BrandWordmark`, landing, header, footer, login, `/games`, `/games/[gameId]`. Commit `56a13f9`.
+- T3 — Contrato canónico `shared/types/baseball-state.ts` + fixture demo + consumidor mínimo (S5) — inline — **hecho**. Contrato + `shared/realtime/contract.ts` + `shared/fixtures/demo-game.ts`; consumidores: web y API. Commit `566068e`.
+- T4 — `prisma/schema.prisma` + esqueleto backend Express/Socket.IO (S6) — inline — **hecho**. Schema válido, migración inicial generada, API con `/health` y rooms. Commit `6e4270e`.
+- T5 — Dockerfile multi-stage + compose test/prod + docs Dokploy (S7, S8, S9, S10) — inline — **hecho**. Imágenes `web`/`api`, compose validado con `docker compose config`. Commit `89ec14f`.
 - T6 — Verificación: typecheck, `next build`, lint, smoke HTTP, `docker compose config` — inline — **hecho**. Detalle en el log.
 
 ## Log
