@@ -81,11 +81,15 @@ seleccionando el target correspondiente (`web` o `api`).
 ## Migraciones de base de datos
 
 El `Dockerfile` genera el cliente Prisma en la etapa `api-builder`. Las
-migraciones se aplican como paso previo al arranque de la API:
+migraciones se aplican como paso previo al arranque de la API. La imagen `api`
+usa `WORKDIR /app` y el schema queda en `/app/prisma`:
 
 ```bash
-# dentro del contenedor de la API, con DATABASE_URL definida
-pnpm exec prisma migrate deploy --schema ../prisma/schema.prisma
+# dentro del contenedor de la API (cwd /app), con DATABASE_URL definida
+pnpm exec prisma migrate deploy --schema prisma/schema.prisma
+
+# alternativa desde el host / repo, usando el script del paquete backend
+pnpm --dir backend run prisma:migrate
 ```
 
 En Dokploy se configura como **comando de pre-deploy** de la aplicación `api`.

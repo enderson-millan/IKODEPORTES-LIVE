@@ -64,6 +64,7 @@ ENV NODE_ENV=production PORT=4000
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 api
 COPY --from=api-builder --chown=api:nodejs /repo/backend/package.json ./package.json
+# Dev dependencies are kept on purpose: `prisma migrate deploy` runs inside this image.
 COPY --from=api-builder --chown=api:nodejs /repo/backend/node_modules ./node_modules
 COPY --from=api-builder --chown=api:nodejs /repo/backend/dist ./dist
 COPY --from=api-builder --chown=api:nodejs /repo/prisma ./prisma

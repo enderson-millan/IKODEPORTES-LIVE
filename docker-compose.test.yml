@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     environment:
       PORT: 4000
-      CORS_ORIGIN: ${TEST_CORS_ORIGIN:-http://localhost:3001}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
       FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-3000}
       DATABASE_URL: postgresql://ikodeportes:${DB_PASSWORD:-ikodeportes_test}@db_test:5432/db_test?schema=public
     ports:
@@ -55,7 +55,7 @@ services:
       context: .
       target: web
       args:
-        NEXT_PUBLIC_WS_URL: ${TEST_PUBLIC_WS_URL:-http://localhost:4001}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-http://localhost:4001}
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
     container_name: ikodeportes-web-test
@@ -63,7 +63,7 @@ services:
     environment:
       PORT: 3000
       HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_WS_URL: ${TEST_PUBLIC_WS_URL:-http://localhost:4001}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-http://localhost:4001}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
