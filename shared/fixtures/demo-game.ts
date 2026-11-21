@@ -75,7 +75,13 @@ export const demoGame: CanonicalBaseballState = {
     half: "BOTTOM",
     isLive: true,
   },
-  bases: { first: true, second: true, third: false },
+  bases: {
+    first: true,
+    second: true,
+    third: false,
+    firstRunner: { id: "demo-run-1", name: "Ildemaro Vargas", jerseyNumber: "10" },
+    secondRunner: { id: "demo-run-2", name: "José Sánchez", jerseyNumber: "4" },
+  },
   count: { balls: 1, strikes: 2, outs: 1 },
   atBat: {
     batter: {
@@ -216,6 +222,13 @@ export const demoGame: CanonicalBaseballState = {
       batterName: "Wilfredo Antunez",
       pitcherName: "Ronald Medrano",
       createdAt: "2026-11-22T00:12:00.000Z",
+      hit: {
+        x: 88,
+        y: 113,
+        trajectory: "fly_ball",
+        hardness: "medium",
+        location: "7",
+      },
     },
   ],
 };

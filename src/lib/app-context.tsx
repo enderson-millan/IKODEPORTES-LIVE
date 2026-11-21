@@ -146,6 +146,10 @@ export const dict: Dict = {
   playByPlay: { ES: "Relato en vivo", PT: "Relato ao vivo", EN: "Play by play" },
   venue: { ES: "Estadio", PT: "Estádio", EN: "Venue" },
   date: { ES: "Fecha", PT: "Data", EN: "Date" },
+  field: { ES: "Campo", PT: "Campo", EN: "Field" },
+  lastPlay: { ES: "Última jugada", PT: "Última jogada", EN: "Last play" },
+  connecting: { ES: "Conectando", PT: "Conectando", EN: "Connecting" },
+  offline: { ES: "Sin conexión", PT: "Sem conexão", EN: "Offline" },
   gameNotFound: { ES: "Partido no encontrado", PT: "Jogo não encontrado", EN: "Game not found" },
   trackerNote: {
     ES: "Vista del contrato canónico. El tracker modular completo y el overlay de OBS llegan en la Fase 3.",

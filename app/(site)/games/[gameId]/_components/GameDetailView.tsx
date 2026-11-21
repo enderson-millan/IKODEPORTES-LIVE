@@ -17,6 +17,7 @@ import { BasesDiamond } from "@/components/game/BasesDiamond";
 import { CountGrid } from "@/components/game/CountGrid";
 import { LineScoreTable } from "@/components/game/LineScoreTable";
 import { PlayByPlayFeed } from "@/components/game/PlayByPlayFeed";
+import { FieldView } from "@/components/game/FieldView";
 
 dayjs.extend(utc);
 
@@ -221,6 +222,12 @@ export function GameDetailView({ state }: { state: CanonicalBaseballState }) {
               ) : (
                 <p className="text-sm text-muted-foreground">—</p>
               )}
+            </Panel>
+
+            <Panel title={t("field")}>
+              <div className="aspect-[25/16] w-full">
+                <FieldView state={state} />
+              </div>
             </Panel>
 
             <Panel title={t("pitchesOfAtBat")}>
