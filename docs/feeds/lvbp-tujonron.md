@@ -14,6 +14,49 @@ El GameDay de la LVBP está servido por **TuJonrón.com**:
   `linescore`, `boxscore`, `plays`). Esto permite reutilizar la normalización del
   futuro `MlbStatsAdapter` y cambiar solo el transporte.
 
+## Capa 0 — MLB StatsAPI (mejor alternativa gratuita, verificada)
+
+**La LVBP está servida por la StatsAPI pública de MLB.** Es la misma fuente que
+usa TuJonrón: el `gamePk` coincide (`869962`), así que no hace falta scrapear ni
+resolver tokens.
+
+Verificado el 2026-11-21:
+
+```bash
+# ligas de invierno -> league 135 = LVBP
+https://statsapi.mlb.com/api/v1/leagues?sportId=17
+
+# solo partidos LVBP de una fecha
+https://statsapi.mlb.com/api/v1/schedule?sportId=17&leagueId=135&date=2026-11-21&hydrate=linescore,team
+
+# feed completo en vivo (sin auth, sin token)
+https://statsapi.mlb.com/api/v1.1/game/869962/feed/live
+```
+
+Resultado observado para `869962`:
+
+- `gameData.teams` y `gameData.venue` (Maracay, Estadio José Pérez Colmenares).
+- `liveData.linescore`: inning 5, `isTopInning`, `balls/strikes/outs` y
+  **`offense.first/second/third`** (bases).
+- `liveData.linescore` también trae bateador y lanzador actuales.
+- `liveData.plays.allPlays`: **50 jugadas**; `currentPlay.playEvents` con los
+  pitcheos del turno (llamada, zona alta/baja y coordenadas).
+- `liveData.boxscore`: alineaciones y estadísticas del día.
+- Respuesta `200` con `Cache-Control: max-age=10, public` → **el propio feed
+  declara 10 s de frescura**; conviene hacer polling ≥ 10 s.
+- Sin `X-RateLimit-*` y sin credenciales.
+
+**Limitación real de la LVBP (no del acceso):** en este feed los pitcheos traen
+`details.call` y `pitchData.strikeZoneTop/Bottom` y `coordinates` crudas, pero
+**no** `pitchData.startSpeed` ni `details.type`. Es decir: hay jugada a jugada y
+bases, pero **no hay velocidad (MPH/KM-H) ni tipo de pitcheo** en la fuente.
+Los paneles de "pitches del turno" con recta/slider y velocidad quedan vacíos
+para LVBP hasta que la liga/proveedor publique esos campos.
+
+Caveat: endpoint público pero **no documentado como API oficial** (sin SLA ni
+contrato). Usar atribución, User-Agent identificable, backoff y un intervalo
+cortés.
+
 ## Capa 1 — HTML SSR (público)
 
 Todo el estado del partido llega embebido en el HTML:
@@ -94,16 +137,19 @@ deduplicar.
 
 ## Recomendación
 
-1. **Preferido:** pedir acceso oficial a TuJonrón/LVBP. El proveedor ya tiene un
-   feed JSON estable y documentable; conviene acordar cuota, formato y licencia.
-2. **Alternativa permitida:** `TujonronHtmlAdapter` que parsea el payload SSR
-   público (capa 1) con intervalo ≥ 15 s, `User-Agent` identificable, backoff,
-   caché y atribución visible. Acepta que `bases` y el log de pitcheos queden
-   vacíos hasta tener el feed completo.
-3. **No hacer:** replicar el proof-of-work ni el token de sesión para consumir la
+1. **Primario:** `LvbpStatsApiAdapter` sobre `statsapi.mlb.com` (`sportId=17`,
+   `leagueId=135`). Es gratis, sin token, usa el mismo `gamePk` y entrega bases,
+   conteo, jugada a jugada y boxscore. Polling ≥ 10 s respetando `Cache-Control`.
+2. **Fallback:** `TujonronHtmlAdapter` sobre el payload SSR público (capa 1) si
+   StatsAPI falla o cambia. Acepta que `bases` y el log de pitcheos queden
+   vacíos.
+3. **Opcional:** pedir acceso oficial a TuJonrón/LVBP para obtener tipo y
+   velocidad de pitcheo y un contrato con SLA.
+4. **No hacer:** replicar el proof-of-work ni el token de sesión para consumir la
    API interna sin autorización escrita. Es evadir un control anti-bot.
-4. **Arquitectura:** un único normalizador estilo StatsAPI con transporte
-   intercambiable (`statsapi.mlb.com`, TuJonrón u otro proveedor compatible).
+5. **Arquitectura:** un único normalizador estilo StatsAPI con transporte
+   intercambiable; `statsapi.mlb.com` (LVBP, LIDOM, LMP, MLB) y TuJonrón u otro
+   proveedor compatible comparten la misma forma.
 
 ## Datos de la muestra (2026-11-21)
 
