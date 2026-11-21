@@ -22,14 +22,33 @@ Fuera de alcance: control de paneles desde un panel de operador, persistencia Pr
 
 ## Tasks
 
-- T1 — Contrato aditivo + fixture demo con corredores y batazo.
-- T2 — `IBaseballFeedAdapter` + `MlbStatsAdapter` (StatsAPI LVBP) + registro.
-- T3 — `PollingService` con bootstrap, `diffPatch`, SHA-256 y broadcast.
-- T4 — Rutas live (`start`/`stop`/`state`/`discover`) + Socket.IO con estado al unirse.
-- T5 — Hook `useLiveGame` + `FieldView` + overlay 1920x1080.
-- T6 — Compose local + túnel Cloudflare + env/docs.
-- T7 — Smoke del adaptador, E2E HTTP+socket, build, lint y compose config.
+- T1 — Contrato aditivo + fixture demo con corredores y batazo. **Hecho** (commit `feat: add live lvbp statsapi adapter and polling` + `feat: add live overlay with field visual`).
+- T2 — `IBaseballFeedAdapter` + `MlbStatsAdapter` (StatsAPI LVBP) + registro. **Hecho**; smoke real contra `869962`.
+- T3 — `PollingService` con bootstrap, `diffPatch`, SHA-256 y broadcast. **Hecho**; E2E HTTP+socket OK.
+- T4 — Rutas live (`start`/`stop`/`state`/`discover`) + Socket.IO con estado al unirse. **Hecho**.
+- T5 — Hook `useLiveGame` + `FieldView` + overlay 1920x1080. **Hecho**; verificado en Chrome headless con datos en vivo.
+- T6 — Compose local + túnel Cloudflare + env/docs. **Hecho**; `docker compose config` OK.
+- T7 — Smoke del adaptador, E2E HTTP+socket, build, lint y compose config. **Hecho**.
 
 ## Log
 
 - **L1** (solicitud): "si arranca" (Fase 3a) y "la api en mi pc local, y solo rodar cuando vaya a transmitir el juego", exponiéndola con el túnel de Cloudflare del servidor `dunamis`.
+
+## Verificación
+
+- pnpm --dir backend typecheck OK; pnpm --dir backend build OK (28 KB).
+- pnpm --dir backend smoke:lvbp contra el partido en vivo 869962: 3 juegos en el schedule, 9 defensores, 61-62 jugadas, corredor con nombre/dorsal, último batazo con coordenadas, AVG/ERA presentes.
+-
+
+ode scripts/verify-live.mjs 869962 con API local: /health, POST /start, GET /state y game-state por Socket.IO (defense 9).
+
+- pnpm typecheck, pnpm build y pnpm lint (0 errores) OK. La ruta /overlay/[gameId] quedó dinámica.
+- Chrome headless sobre http://127.0.0.1:3111/overlay/869962: DOM con ambos equipos, <svg> del campo y EN VIVO; ya no muestra Conectando (socket + estado en vivo).
+- docker compose -f docker-compose.local.yml --profile tunnel config OK.
+
+## Hallazgos
+
+- El feed gameData.teams.{away,home} del live feed trae los campos del equipo en la raíz (sin eam ni score), a diferencia del schedule ({team, score}). El normalizador acepta ambas formas; el score sale de linescore.teams.
+- diffPatch devuelve 2 bytes sin cambios y ~20 KB por ventana activa; el feed completo es ~630 KB. El polling queda barato.
+- La web lee LIVE_WS_URL en runtime (server component), así que cambiar entre localhost y el túnel no exige reconstruir la imagen.
+- Un túnel de Cloudflare solo alcanza su propio host: el túnel del servidor no puede ver el stack del PC. El modo local usa un túnel propio (ikodeportes-local) y no se une a cloudflare_network.
