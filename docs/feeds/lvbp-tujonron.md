@@ -135,6 +135,23 @@ deduplicar.
 `e()` del bundle también expone la clasificación de liga usada por el proveedor:
 `league.id 135` = LVBP, `162` = Serie del Caribe, `160` = WBC, `sport.id 1` = MLB.
 
+## Datos para el campo visual (verificado en el mismo feed)
+
+El diamante con corredores y defensa **sí es posible** sin imágenes ni video:
+
+| Campo                                           | Uso                                                                                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `liveData.linescore.defense`                    | las 9 posiciones (`pitcher`, `catcher`, `first`, `second`, `third`, `shortstop`, `left`, `center`, `right`), más `team`, `batter`, `onDeck`, `inHole`, `battingOrder` |
+| `liveData.linescore.offense.first/second/third` | corredores en base; **la clave solo existe si la base está ocupada** (si está vacía, el campo viene omitido)                                                          |
+| `liveData.boxscore.teams[side].players`         | `jerseyNumber`, `position.abbreviation`, `battingOrder` para pintar número/posición                                                                                   |
+| `playEvents[].hitData`                          | `coordinates.coordX/coordY`, `hardness`, `location`, `trajectory` → ubicación del batazo para el marcador de campo                                                    |
+| `pitchData.zone`                                | **no existe** en LVBP; solo `details.call`, `strikeZoneTop/Bottom` y `coordinates.x/y`                                                                                |
+
+Con eso se puede dibujar un SVG fijo (geometría del parque) y pintar encima:
+corredores, defensa, bateador, pitcher y el último batazo. La zona de strike exacta
+(9 cuadrantes) no es fiable sin `pitchData.zone`/`pX`/`pZ`; conviene una zona
+esquemática con el último pitcheo, no una réplica del video del proveedor.
+
 ## Recomendación
 
 1. **Primario:** `LvbpStatsApiAdapter` sobre `statsapi.mlb.com` (`sportId=17`,
