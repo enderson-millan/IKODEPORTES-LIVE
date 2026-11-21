@@ -1,0 +1,77 @@
+# Isolated test stack: web :3001 · api :4001 · postgres :5433
+# Usage: docker compose -f docker-compose.test.yml up --build
+name: ikodeportes-test
+
+services:
+  db_test:
+    image: postgres:17-alpine
+    container_name: ikodeportes-db-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ikodeportes
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ikodeportes_test}
+      POSTGRES_DB: db_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ikodeportes -d db_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api_test:
+    build:
+      context: .
+      target: api
+    container_name: ikodeportes-api-test
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      CORS_ORIGIN: ${TEST_CORS_ORIGIN:-http://localhost:3001}
+      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-3000}
+      DATABASE_URL: postgresql://ikodeportes:${DB_PASSWORD:-ikodeportes_test}@db_test:5432/db_test?schema=public
+    ports:
+      - "4001:4000"
+    depends_on:
+      db_test:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  web_test:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_WS_URL: ${TEST_PUBLIC_WS_URL:-http://localhost:4001}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    container_name: ikodeportes-web-test
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_WS_URL: ${TEST_PUBLIC_WS_URL:-http://localhost:4001}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+    ports:
+      - "3001:3000"
+    depends_on:
+      api_test:
+        condition: service_healthy
+
+volumes:
+  db_test_data:

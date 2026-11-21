@@ -1,0 +1,24 @@
+# Source control / tooling
+.git
+.gitignore
+.github
+.vscode
+.idea
+.kiro
+.atl
+.engram
+odd
+
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+.next
+**/dist
+backend/dist
+backend/prisma
+tsconfig.tsbuildinfo
+*.log
+
+# Environment files (only the template is harmless, and it is not needed)
+.env
+.env.*
