@@ -1,13 +1,17 @@
 {
-  "name": "matamata-live",
+  "name": "ikodeportes-live",
   "private": true,
+  "version": "0.1.0",
+  "description": "IKODEPORTES Live — realtime baseball/softball game tracker and OBS overlay engine.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:dev": "next build --mode development",
     "preview": "next start",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "docker:test": "docker compose -f docker-compose.test.yml up --build",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up --build -d"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -39,8 +43,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/ssr": "^0.6",
     "@supabase/supabase-js": "^2",
-    "@tanstack/react-query": "^5.101.1",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query": "^5.101.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

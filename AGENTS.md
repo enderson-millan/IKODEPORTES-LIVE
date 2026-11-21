@@ -1,109 +1,135 @@
-# AGENTS.md — MataMata.live
+# AGENTS.md — IKODEPORTES Live
 
-## Sobre o Projeto
+## About the project
 
-**MataMata.live** é uma web app de palpites do mata-mata da Copa do Mundo 2026. Usuários fazem login com Google, escolhem quem avança em cada rodada eliminatória e competem num placar ao vivo.
+**IKODEPORTES Live** is a realtime sports tracking platform for baseball and
+softball (game tracker / play-by-play), built to be **discipline- and
+league-agnostic**. Brand: `IKODEPORTES` (with K). Claim: `EL DEPORTE, EN CONTEXTO.`
 
-Projeto **single-package** (sem monorepo / sem backend separado): Next.js App Router, Supabase como backend (auth + banco).
+It feeds two surfaces from a single canonical state:
+
+1. `app/overlay/[gameId]` — OBS browser source: transparent 1920x1080 canvas,
+   per-panel visibility controls. (Phase 3)
+2. `app/games/[gameId]` — interactive data center for viewers:
+   line score, bases, count, pitch zone and play-by-play. (Phase 3)
+
+Current status: **Phases 1 and 2 complete** — template cleanup, brand identity,
+canonical contract, Prisma schema and Docker/Dokploy deployment. The full
+tracker UI and the feed adapters land in Phase 3.
 
 ## Stack
 
-| Camada        | Tecnologia                                                              |
-| ------------- | ----------------------------------------------------------------------- |
-| Framework     | **Next.js 16** (App Router) — rotas em `app/`                           |
-| Runtime UI    | **React 19** + **TypeScript 5** (strict)                                |
-| Estilo        | **Tailwind CSS v4** + **shadcn/ui** (New York, slate, CSS vars)         |
-| Ícones        | **lucide-react**                                                        |
-| State global  | **React Context** (`src/lib/app-context.tsx`) — lang, theme, picks      |
-| Data fetching | **TanStack Query v5** — todas as chamadas async                         |
-| Backend/Auth  | **Supabase** (`@supabase/supabase-js` + `@supabase/ssr`) — OAuth Google |
-| Formulários   | **React Hook Form v7** + **Zod v3** + `@hookform/resolvers`             |
-| Datas         | **dayjs** (preferir sobre date-fns)                                     |
-| Utilitários   | `cn()` via **clsx + tailwind-merge** (`src/lib/utils.ts`)               |
-| Package mgr   | **pnpm** (obrigatório — nunca npm/yarn)                                 |
+| Layer           | Technology                                                            |
+| --------------- | --------------------------------------------------------------------- |
+| Web framework   | Next.js 16 (App Router), React 19, TypeScript 5 (strict)              |
+| Styling         | Tailwind CSS v4, shadcn/ui (New York, slate, CSS vars)                |
+| Icons           | lucide-react                                                          |
+| Client state    | React Context (`src/lib/app-context.tsx`) — lang, theme, user         |
+| Data fetching   | TanStack Query v5                                                     |
+| Auth (optional) | Supabase Google OAuth (`@supabase/ssr`)                               |
+| Validation      | React Hook Form v7 + Zod v3                                           |
+| Dates           | dayjs (preferred over date-fns)                                       |
+| API             | Node.js + TypeScript, Express 5, Socket.IO 4, Prisma 6                |
+| Database        | PostgreSQL 17                                                         |
+| Deploy          | Docker (multi-stage), Docker Compose, Dokploy (`test` / `production`) |
+| Package manager | pnpm (never npm/yarn)                                                 |
 
-## Estrutura de Pastas
+## Structure
 
 ```
-world-cup-picks/
-├── app/                        # Next.js App Router
-│   ├── layout.tsx              # Root layout — html/body, metadata
-│   ├── page.tsx                # Redireciona para /login
-│   └── globals.css             # Imports CSS globais
-│
-├── src/                        # Código-fonte (alias @/*)
-│   ├── assets/                 # Imagens estáticas (mascot, stadium-bg, trophy)
+.
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                # root html/body + providers
+│   ├── globals.css               # Tailwind entry + IKODEPORTES tokens
+│   ├── (site)/                   # public chrome: header + footer
+│   │   ├── page.tsx              # landing
+│   │   ├── login/page.tsx        # optional Google login
+│   │   └── games/                # games list + game detail shell
+│   └── auth/callback/route.ts    # Supabase OAuth callback
+├── src/
 │   ├── components/
-│   │   ├── ui/                 # Primitivas shadcn/ui — NÃO editar manualmente
-│   │   ├── AppHeader.tsx       # Barra de navegação superior
-│   │   └── MatchCard.tsx       # Card de palpite de partida
-│   ├── hooks/
-│   │   ├── queries/            # TanStack Query — hooks de leitura
-│   │   ├── mutations/          # TanStack Query — hooks de escrita
-│   │   └── use-mobile.tsx      # Hook de breakpoint responsivo
-│   ├── lib/
-│   │   ├── app-context.tsx     # Context global + dicionário i18n (PT/ES/EN)
-│   │   ├── mock-matches.ts     # Tipos Match/Team/RankRow + dados mock
-│   │   └── utils.ts            # cn() utility
-│   └── styles.css              # Tailwind base + CSS variables (shadcn tokens)
-│
-├── .kiro/
-│   ├── specs/                  # Feature specs (requirements, design, tasks)
-│   └── steering/               # Regras para agentes de IA
-│
-├── components.json             # Configuração shadcn/ui
-├── next.config.ts              # Next.js config (ignoreBuildErrors durante migração)
-├── tsconfig.json               # TypeScript config
-└── package.json
+│   │   ├── ui/                   # shadcn/ui primitives — do not hand-edit
+│   │   ├── brand/                # BrandLogo / BrandWordmark
+│   │   ├── game/                 # bases, count, line score, play-by-play
+│   │   ├── AppHeader.tsx
+│   │   └── Footer.tsx
+│   ├── hooks/                    # TanStack Query hooks
+│   └── lib/
+│       ├── app-context.tsx       # i18n (ES default, PT, EN) + theme
+│       ├── brand.ts              # brand copy + logo path + palette
+│       ├── game-format.ts        # number/velocity formatting helpers
+│       ├── supabase/             # browser + server clients
+│       └── utils.ts              # cn()
+├── shared/                       # contract shared by web + api
+│   ├── types/baseball-state.ts   # CanonicalBaseballState and friends
+│   ├── realtime/contract.ts      # rooms + socket events
+│   └── fixtures/demo-game.ts     # deterministic demo state
+├── backend/                      # Express + Socket.IO + Prisma service
+│   ├── src/index.ts
+│   ├── src/config.ts
+│   ├── src/realtime/socket-server.ts
+│   └── src/routes/health.ts
+├── prisma/schema.prisma          # Game + PlayEvent models
+├── Dockerfile                    # targets: web | api
+├── docker-compose.test.yml       # :3001 web · :4001 api · :5433 db_test
+├── docker-compose.prod.yml       # :3000 web · :4000 api · :5432 db_prod
+└── docs/dokploy-setup.md         # env vars + deploy steps
 ```
 
-## Comandos
+## Commands
 
 ```bash
-pnpm dev        # Servidor de desenvolvimento
-pnpm build      # Build de produção
-pnpm preview    # Preview do build (next start)
-pnpm lint       # ESLint
-pnpm format     # Prettier
+pnpm dev                # web dev server
+pnpm build              # production build (type-checked)
+pnpm typecheck          # tsc --noEmit
+pnpm lint               # ESLint
+pnpm format             # Prettier
+
+pnpm --dir backend dev  # API dev server (tsx watch)
+pnpm --dir backend build
+
+docker compose -f docker-compose.test.yml up --build
+docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-> Nunca use `npm` ou `yarn`. Sempre `pnpm`.
+> Never use `npm` or `yarn`. Always `pnpm`.
 
-## Git & Commits
+## Architecture rules
 
-- **Conventional Commits**, todas as letras **minúsculas** (ex: `feat: adiciona leaderboard`)
-- Nomenclatura: `kebab-case` para arquivos/pastas, `PascalCase` para componentes React, `camelCase` para funções/variáveis
-- Nunca commitar `.env` — apenas `.env.example` com valores fictícios
+- **One canonical contract.** Both the web app and the API import
+  `shared/types/baseball-state.ts`. Adapters normalize vendor payloads into
+  `CanonicalBaseballState`; UI never reads vendor shapes.
+- **Agnostic adapters.** A feed adapter implements the adapter interface and
+  returns the canonical state. Leagues are data (`LeagueCode`), not branches.
+- **Realtime rooms.** `game:${gameId}` carries canonical state;
+  `overlay:${gameId}` carries panel visibility. Room helpers live in
+  `shared/realtime/contract.ts`.
+- **Trademark safety.** No league/club logos or names. Teams are 3-letter codes
+  plus own vector avatars.
+- **Overlay transparency.** The OBS route lives outside `app/(site)` so no site
+  chrome (header/footer) leaks into the canvas.
 
-## Convenções de Código
+## Conventions
 
-- **TypeScript** em todos os arquivos — sem JS puro
-- **Interfaces** ao invés de `type` para objetos
-- **Nomes descritivos**: `isLoading`, `hasError`, `matchId`
-- **DRY** — extrair componentes e funções reutilizáveis quando necessário
-- Componente usado só em uma página → criar em `_components/` dentro da pasta da rota
-- Queries TanStack Query em `src/hooks/queries/`, mutations em `src/hooks/mutations/`
-- Datas sempre com **dayjs**
-- Estilização apenas com **Tailwind CSS** — sem CSS inline ou styled-components
-- Usar componentes **shadcn/ui** sempre que possível
-- Validação de formulários com **Zod** + **React Hook Form**
+- TypeScript everywhere; `interface` for object shapes.
+- Files `kebab-case`; components `PascalCase`; functions/variables `camelCase`.
+- Conventional Commits, lowercase only: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`.
+- Tailwind only — no inline CSS or styled-components. Brand tokens:
+  `bg-surface-1|2|3`, `text-brand-gold`, `bg-brand-blue`, `text-live`.
+- All visible user copy goes through `t("key")` from `useApp()`.
+- Form validation with Zod + React Hook Form.
+- Never commit `.env`; use `env.example` as the template (the leading-dot
+  template name is blocked by the agent environment policy).
 
-## Contexto de Migração
+## i18n
 
-O projeto está migrando de **TanStack Router** (legacy em `src/`) para **Next.js App Router**. Novos pages vão em `app/`. Erros de TypeScript em arquivos legados de `src/` são ignorados intencionalmente (`ignoreBuildErrors: true` no `next.config.ts`) durante a migração.
+Three languages in `src/lib/app-context.tsx`: **ES (default)**, PT and EN.
+Persisted in `localStorage` under `ikodeportes.lang`.
 
-O `AppHeader.tsx` ainda importa `@tanstack/react-router` — será substituído durante a migração.
+## Known gaps (Phase 3+)
 
-## Internacionalização (i18n)
-
-Suporte a 3 idiomas via dicionário embutido em `src/lib/app-context.tsx`:
-
-- **PT** — Português (padrão)
-- **ES** — Espanhol
-- **EN** — Inglês
-
-Usar sempre `t("chave")` do `useApp()` para textos visíveis ao usuário.
-
-## Domínios de Imagem Permitidos (`next.config.ts`)
-
-`a.espncdn.com`, `flagcdn.com`, `lh3.googleusercontent.com`
+- Full modular tracker and OBS overlay with per-panel controls.
+- Feed adapters: `IBaseballFeedAdapter`, `feed-registry.ts`, `MlbStatsAdapter`,
+  `HttpJsonFeedAdapter`, `CustomFeedAdapter`.
+- Polling with SHA-256 deduplication and Socket.IO broadcasting.
+- Persistence wiring (Prisma client usage, `/games` reading from the database).

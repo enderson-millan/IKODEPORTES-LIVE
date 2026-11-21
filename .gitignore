@@ -3,10 +3,9 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
+# Dependencies / build output
 node_modules
 dist
 dist-ssr
@@ -16,10 +15,24 @@ dist-ssr
 .nitro
 .next
 *.local
+tsconfig.tsbuildinfo
+
+# Backend build output
+backend/dist
+# Generated copy of the canonical Prisma schema
+backend/prisma
+
+# Environment
+.env
+.env.*
+!env.example
 
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Local tooling state
+.engram/
 
 # Editor directories and files
 .vscode/*

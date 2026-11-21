@@ -1,8 +1,11 @@
-/* eslint-disable prettier/prettier */
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+/**
+ * Auth is optional for the public tracker: viewers do not need an account.
+ * Only `/admin/*` is gated, plus the login bounce for already signed-in users.
+ */
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -12,7 +15,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Supabase not configured yet — skip auth gating so the preview keeps working.
+  // Supabase not configured yet — skip auth gating so local preview keeps working.
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
   }
@@ -28,38 +31,31 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     },
   });
 
-  // getUser() verifies the session with the auth server (more secure than getSession())
+  // getUser() verifies the session with the auth server (more secure than getSession()).
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
-  // Protected routes: redirect to /login if not authenticated
-  const isProtectedRoute = pathname === "/bracket" || pathname === "/ranking";
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // /login: redirect to /bracket if already authenticated
-  if (pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/bracket", request.url));
-  }
-
-  // Admin routes: only accessible by the designated admin email
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "";
   if (pathname.startsWith("/admin")) {
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    if (user.email !== ADMIN_EMAIL) {
+    const adminEmail = process.env.ADMIN_EMAIL ?? "";
+    // Fail closed: with no admin configured, nobody is an admin.
+    if (!adminEmail || user.email !== adminEmail) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+  }
+
+  if (pathname === "/login" && user) {
+    return NextResponse.redirect(new URL("/games", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/", "/login", "/bracket", "/ranking", "/admin/:path*", "/auth/callback"],
+  matcher: ["/login", "/admin/:path*", "/auth/callback"],
 };
