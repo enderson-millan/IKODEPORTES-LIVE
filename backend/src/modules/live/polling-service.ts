@@ -39,7 +39,12 @@ export interface PollingServiceOptions {
   intervalMs: number;
   onState: (state: CanonicalBaseballState) => void;
   logger?: (event: Record<string, unknown>) => void;
+  /** Hard cap on concurrently tracked games (abuse protection). */
+  maxGames?: number;
 }
+
+const DEFAULT_MAX_GAMES = 20;
+const CAPACITY_ERROR = "tracking-capacity-reached";
 
 function hashRaw(raw: unknown): string {
   return createHash("sha256").update(JSON.stringify(raw)).digest("hex");
@@ -58,6 +63,10 @@ function errorMessage(error: unknown): string {
  */
 export class PollingService {
   private readonly runtimes = new Map<string, Runtime>();
+  /** In-flight starts, so two concurrent callers share one bootstrap. */
+  private readonly pending = new Map<string, Promise<CanonicalBaseballState>>();
+  /** Games whose start was cancelled by a stop() while bootstrapping. */
+  private readonly cancelled = new Set<string>();
 
   constructor(
     private readonly adapter: IBaseballFeedAdapter,
@@ -99,51 +108,90 @@ export class PollingService {
     const existing = this.runtimes.get(gameId);
     if (existing) return existing.state;
 
-    const snapshot = await this.adapter.fetchState(gameId);
-    const runtime: Runtime = {
-      gameId,
-      raw: snapshot.raw,
-      state: snapshot.state,
-      timeStamp: snapshot.timeStamp,
-      hash: hashRaw(snapshot.raw),
-      timer: null,
-      inFlight: false,
-      errorCount: 0,
-      lastError: null,
-      startedAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    const inFlight = this.pending.get(gameId);
+    if (inFlight) return inFlight;
 
-    runtime.timer = setInterval(() => {
-      void this.tick(gameId);
-    }, this.options.intervalMs);
-    runtime.timer.unref?.();
+    if (this.runtimes.size + this.pending.size >= (this.options.maxGames ?? DEFAULT_MAX_GAMES)) {
+      throw new Error(CAPACITY_ERROR);
+    }
 
-    this.runtimes.set(gameId, runtime);
-    this.emit(runtime);
-    this.log({
-      event: "polling-started",
-      gameId,
-      status: runtime.state.status,
-      intervalMs: this.options.intervalMs,
-      timeStamp: runtime.timeStamp,
+    // A new explicit start overrides a previous stop() that raced with bootstrapping.
+    this.cancelled.delete(gameId);
+
+    const creation = (async () => {
+      const snapshot = await this.adapter.fetchState(gameId);
+
+      if (this.cancelled.has(gameId)) {
+        this.cancelled.delete(gameId);
+        this.log({ event: "polling-start-cancelled", gameId });
+        return snapshot.state;
+      }
+
+      const runtime: Runtime = {
+        gameId,
+        raw: snapshot.raw,
+        state: snapshot.state,
+        timeStamp: snapshot.timeStamp,
+        hash: hashRaw(snapshot.raw),
+        timer: null,
+        inFlight: false,
+        errorCount: 0,
+        lastError: null,
+        startedAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      runtime.timer = setInterval(() => {
+        void this.tick(gameId);
+      }, this.options.intervalMs);
+      runtime.timer.unref?.();
+
+      this.runtimes.set(gameId, runtime);
+      this.emit(runtime);
+      this.log({
+        event: "polling-started",
+        gameId,
+        status: runtime.state.status,
+        intervalMs: this.options.intervalMs,
+        timeStamp: runtime.timeStamp,
+      });
+
+      return runtime.state;
+    })();
+
+    const tracked = creation.finally(() => {
+      this.pending.delete(gameId);
     });
+    this.pending.set(gameId, tracked);
 
-    return runtime.state;
+    return tracked;
   }
 
   stop(gameId: string): boolean {
     const runtime = this.runtimes.get(gameId);
-    if (!runtime) return false;
-    if (runtime.timer) clearInterval(runtime.timer);
-    this.runtimes.delete(gameId);
-    this.log({ event: "polling-stopped", gameId });
-    return true;
+    if (runtime) {
+      if (runtime.timer) clearInterval(runtime.timer);
+      this.runtimes.delete(gameId);
+      this.log({ event: "polling-stopped", gameId });
+      return true;
+    }
+
+    if (this.pending.has(gameId)) {
+      this.cancelled.add(gameId);
+      this.log({ event: "polling-stop-pending", gameId });
+      return true;
+    }
+
+    return false;
   }
 
   stopAll(): void {
     for (const gameId of Array.from(this.runtimes.keys())) {
       this.stop(gameId);
+    }
+    // Pending bootstraps must not create a timer after shutdown.
+    for (const gameId of Array.from(this.pending.keys())) {
+      this.cancelled.add(gameId);
     }
   }
 

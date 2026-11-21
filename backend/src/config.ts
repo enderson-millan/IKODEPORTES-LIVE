@@ -11,6 +11,7 @@ export interface AppConfig {
   leagueId: number;
   autoDiscover: boolean;
   controlToken: string | undefined;
+  maxTrackedGames: number;
 }
 
 function readPositiveInt(name: string, fallback: number): number {
@@ -46,4 +47,5 @@ export const config: AppConfig = {
   leagueId: readPositiveInt("LVBP_LEAGUE_ID", 135),
   autoDiscover: readBoolean("LIVE_AUTO_DISCOVER", false),
   controlToken: process.env.CONTROL_TOKEN || undefined,
+  maxTrackedGames: readPositiveInt("MAX_TRACKED_GAMES", 20),
 };

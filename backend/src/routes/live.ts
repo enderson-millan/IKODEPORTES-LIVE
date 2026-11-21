@@ -58,6 +58,10 @@ export function createLiveRouter({ adapter, polling, controlToken }: LiveRouterO
       const state = await polling.start(gameId);
       response.json({ state });
     } catch (error) {
+      if (error instanceof Error && error.message === "tracking-capacity-reached") {
+        response.status(429).json({ error: "tracking-capacity-reached" });
+        return;
+      }
       response.status(502).json({ error: "feed-unavailable", message: errorMessage(error) });
     }
   });

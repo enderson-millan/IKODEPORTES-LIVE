@@ -138,12 +138,13 @@ servidor y el socket va al PC.
 Si OBS corre en la misma PC, no hace falta Cloudflare:
 
 ```bash
-NEXT_PUBLIC_WS_URL=http://localhost:4100 \
+LIVE_WS_URL=http://localhost:4100 \
   docker compose -f docker-compose.local.yml up -d --build
 ```
 
-OBS: `http://localhost:3100/overlay/869962`. Para alternar sin reconstruir, la
-web lee `LIVE_WS_URL` en runtime; el build arg solo queda como respaldo.
+OBS: `http://localhost:3100/overlay/869962`. `LIVE_WS_URL` es la variable de
+runtime que leen los server components; si queda vacía, la web usa
+`NEXT_PUBLIC_WS_URL` (valor incrustado en el build).
 
 ### Seguridad
 

@@ -266,6 +266,7 @@ function unwrapTeam(side?: RawTeamSide): RawTeamInfo | undefined {
 function toStatus(status?: RawStatus): GameStatus {
   if (status?.codedGameState === "I" || status?.abstractGameState === "Live") return "LIVE";
   if (status?.codedGameState === "F" || status?.abstractGameState === "Final") return "FINAL";
+  // StatsAPI uses "D" for Delayed; the contract has no DELAYED state yet.
   if (status?.codedGameState === "D") return "POSTPONED";
   if (status?.codedGameState === "C") return "CANCELED";
   return "SCHEDULED";

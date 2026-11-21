@@ -43,6 +43,7 @@ const pollingService = new PollingService(adapter, {
   intervalMs: config.feedPollIntervalMs,
   onState: (state) => broadcastGameState(io, state),
   logger: log,
+  maxGames: config.maxTrackedGames,
 });
 polling = pollingService;
 
