@@ -1,23 +1,35 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Footer } from "@/components/Footer";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "MataMata.live",
-  description: "Copa 2026 Pick'em — acompanhe e palpite no mata-mata da Copa do Mundo.",
+  metadataBase: new URL(BRAND.siteUrl),
+  title: {
+    default: `${BRAND.name} — ${BRAND.slogan}`,
+    template: `%s · ${BRAND.name}`,
+  },
+  description:
+    "Seguimiento en vivo de béisbol y softbol: marcador, bases, cuenta y relato jugada por jugada.",
+  applicationName: BRAND.name,
+  icons: { icon: BRAND.logo.src },
+  openGraph: {
+    title: `${BRAND.name} — ${BRAND.slogan}`,
+    description: "Game tracker en tiempo real para béisbol y softbol.",
+    siteName: BRAND.name,
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: BRAND.colors.night,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt" suppressHydrationWarning>
-      <body className="flex min-h-screen flex-col">
-        <Providers>
-          <div className="flex flex-1 flex-col">
-            {children}
-            <Footer />
-          </div>
-        </Providers>
+    <html lang="es" className="dark" suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
