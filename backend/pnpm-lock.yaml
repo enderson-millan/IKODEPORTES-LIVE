@@ -17,6 +17,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.3.0
+      fast-json-patch:
+        specifier: ^3.1.2
+        version: 3.1.2
       socket.io:
         specifier: ^4.8.1
         version: 4.8.4
@@ -777,6 +780,9 @@ packages:
   fast-check@3.23.2:
     resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
     engines: {node: '>=8.0.0'}
+
+  fast-json-patch@3.1.2:
+    resolution: {integrity: sha512-Dhr5mVii8hIvjkp0Xdrun9B3GlXe3j+L4Ymv8J0h3Di996xoBi8qSDQ/sqSNKZd1NEqx55ZfcseG1MphW7MkHg==}
 
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
@@ -1779,6 +1785,8 @@ snapshots:
   fast-check@3.23.2:
     dependencies:
       pure-rand: 6.1.0
+
+  fast-json-patch@3.1.2: {}
 
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:

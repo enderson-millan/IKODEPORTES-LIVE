@@ -57,11 +57,26 @@ export interface GameVenue {
   country?: string;
 }
 
-/** Base occupancy. `true` means a runner is on that base. */
+/** A runner occupying a base, when the feed exposes their identity. */
+export interface BaseRunner {
+  id?: string;
+  name: string;
+  /** Jersey number, when available. */
+  jerseyNumber?: string;
+}
+
+/**
+ * Base occupancy. `true` means a runner is on that base. The optional
+ * `*Runner` fields carry identity for the field visual; they never replace the
+ * booleans, so existing consumers stay valid.
+ */
 export interface BasesState {
   first: boolean;
   second: boolean;
   third: boolean;
+  firstRunner?: BaseRunner;
+  secondRunner?: BaseRunner;
+  thirdRunner?: BaseRunner;
 }
 
 /** The three live counters shown as `B-S-O`. */
@@ -182,6 +197,21 @@ export interface DefenseSlot {
   jerseyNumber?: string;
 }
 
+/**
+ * Where a batted ball landed, in the provider's coordinate system.
+ * StatsAPI uses `coordX`/`coordY`; consumers map it to their own field SVG.
+ */
+export interface BattedBallLocation {
+  x: number;
+  y: number;
+  /** "fly_ball", "line_drive", "ground_ball", "popup", ... */
+  trajectory?: string;
+  /** "soft", "medium", "hard". */
+  hardness?: string;
+  /** Provider hit location code (e.g. "7" = left field). */
+  location?: string;
+}
+
 /** One item of the chronological play-by-play feed. */
 export interface PlayByPlayItem {
   /** Monotonic sequence inside the game, unique per game. */
@@ -200,6 +230,8 @@ export interface PlayByPlayItem {
   batterName?: string;
   pitcherName?: string;
   createdAt?: string;
+  /** Batted-ball location, when the feed reports it. */
+  hit?: BattedBallLocation;
 }
 
 /** Provenance of a state snapshot: who produced it and when. */
