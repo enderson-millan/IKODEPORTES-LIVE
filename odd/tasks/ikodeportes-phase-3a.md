@@ -52,3 +52,11 @@ ode scripts/verify-live.mjs 869962 con API local: /health, POST /start, GET /sta
 - diffPatch devuelve 2 bytes sin cambios y ~20 KB por ventana activa; el feed completo es ~630 KB. El polling queda barato.
 - La web lee LIVE_WS_URL en runtime (server component), así que cambiar entre localhost y el túnel no exige reconstruir la imagen.
 - Un túnel de Cloudflare solo alcanza su propio host: el túnel del servidor no puede ver el stack del PC. El modo local usa un túnel propio (ikodeportes-local) y no se une a cloudflare_network.
+
+## Verificación independiente y correcciones
+
+- **V2** — gentle-ai-verify revisó contrato, adaptador, polling, sockets, overlay y despliegue. Encontró 2 bloqueadores reales:
+  - **B1** — PollingService.start tenía TOCTOU: dos /start concurrentes hacían dos bootstraps, creaban dos timers y dejaban uno huérfano. Corregido con pending map (comparte el bootstrap), cancelled set (stop durante bootstrap) y tope maxGames. Regresión: pnpm --dir backend check:polling OK; dos POST /start concurrentes por HTTP → un solo polling-started y un solo timer.
+  - **B2** — el default no vacío de LIVE_WS_URL en el compose eclipsaba NEXT_PUBLIC_WS_URL en el modo "solo local". Corregido con LIVE_WS_URL: ${"$"}{LIVE_WS_URL:-}` en compose, || en el server component y el comando documentado usando LIVE_WS_URL. Commit e3170e9.
+- **N1** — No bloqueante: /stop queda abierto si CONTROL_TOKEN está vacío. Antes de exponer por túnel, definir el token. Se agregó MAX_TRACKED_GAMES=20 como tope de /start públicos.
+- **N2** — D en StatsAPI es _Delayed_; el contrato todavía no tiene DELAYED, se mapea a POSTPONED (documentado en el adaptador).
