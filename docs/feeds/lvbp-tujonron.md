@@ -57,6 +57,28 @@ Caveat: endpoint público pero **no documentado como API oficial** (sin SLA ni
 contrato). Usar atribución, User-Agent identificable, backoff y un intervalo
 cortés.
 
+### Polling eficiente (`diffPatch`)
+
+Medido el 2026-11-21 sobre el mismo partido:
+
+| Endpoint                                             | Tamaño                                              | Uso                                 |
+| ---------------------------------------------------- | --------------------------------------------------- | ----------------------------------- |
+| `/feed/live`                                         | **~630 KB**                                         | bootstrap y re-sincronización       |
+| `/feed/live/diffPatch?startTimecode=YYYYMMDD_HHMMSS` | **2 bytes** sin cambios · ~20 KB por ventana activa | polling continuo                    |
+| `/api/v1/game/{pk}/linescore`                        | **3.5 KB**                                          | respaldo de bases/conteo/alineación |
+| `/api/v1/game/{pk}/playByPlay`                       | 283 KB                                              | no usar en polling                  |
+| `/api/v1/game/{pk}/boxscore`                         | 271 KB                                              | no usar en polling                  |
+
+El `diffPatch` devuelve `[{ "diff": [ ...operaciones RFC 6902... ] }]`. Se aplica
+sobre el snapshot en memoria y se actualiza `metaData.timeStamp`. Si el patch no
+aplica (hueco o desincronización), se vuelve a bajar el feed completo. El propio
+feed publica `metaData.wait = 10`; un intervalo de 5 s es buen equilibrio para
+OBS.
+
+**Bandwidth:** polling del feed completo cada 10 s para 8 partidos ≈ **40 GB/día**.
+Con `diffPatch` baja a decenas de MB/día. No es una optimización menor: define si
+entra en un VPS pequeño.
+
 ## Capa 1 — HTML SSR (público)
 
 Todo el estado del partido llega embebido en el HTML:

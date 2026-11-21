@@ -78,6 +78,44 @@ docker compose -f docker-compose.prod.yml up --build -d
 En Dokploy, cada aplicación se reconstruye desde el mismo `Dockerfile`
 seleccionando el target correspondiente (`web` o `api`).
 
+## Dimensionamiento del VPS (todo-en-Dokploy)
+
+Perfil: ~8 partidos LVBP, polling `diffPatch` cada 5 s, 1 overlay de OBS por
+transmisión y pocos usuarios web concurrentes.
+
+| Recurso        | Mínimo           | Recomendado |
+| -------------- | ---------------- | ----------- |
+| vCPU           | 2                | 2–4         |
+| RAM            | 2 GB + 2 GB swap | 4 GB        |
+| Disco SSD      | 40 GB            | 80 GB       |
+| Ancho de banda | 1 TB/mes         | 2 TB/mes    |
+
+Consumo aproximado en régimen: Dokploy/Traefik ~300 MB, PostgreSQL ~200 MB, API
+~120 MB, web ~200 MB. Total ~800 MB–1 GB antes de picos.
+
+**El build es el pico, no el runtime.** `next build` puede pedir 1.5–2 GB de RAM.
+En un VPS de 2 GB conviene construir la imagen en CI (GitHub Actions → GHCR) y que
+Dokploy solo haga `pull`, o añadir swap y detener el resto de servicios durante el
+build.
+
+Notas para plan free:
+
+- Un free tier de 512 MB–1 GB alcanza solo para **staging** y aun así con build
+  externo. Postgres + web + API + Dokploy no conviven cómodos en 1 GB.
+- Oracle Cloud Always Free (ARM 4 OCPU / 24 GB) es la excepción: sobra para
+  producción; requiere imágenes `linux/arm64`.
+- Los free tiers no tienen SLA y pueden reclamar instancias inactivas: no los uses
+  para el entorno `production`.
+
+Operación:
+
+- Rotar logs de Docker (`max-size: 10m`, `max-file: 3`) para no llenar el disco.
+- `docker image prune` periódico; las imágenes de Next + API + Prisma ocupan varios GB.
+- Si `test` y `production` comparten VPS, apagar `test` cuando no se use: duplica
+  el consumo.
+- Con una sola instancia de API no hace falta Redis. Si algún día hay 2+, Socket.IO
+  necesita el adaptador de Redis.
+
 ## Migraciones de base de datos
 
 El `Dockerfile` genera el cliente Prisma en la etapa `api-builder`. Las
