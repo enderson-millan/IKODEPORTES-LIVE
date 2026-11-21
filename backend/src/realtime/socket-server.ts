@@ -1,6 +1,9 @@
 import type { Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import type { CanonicalBaseballState, OverlayControlState } from "../../../shared/types/baseball-state";
+import type {
+  CanonicalBaseballState,
+  OverlayControlState,
+} from "../../../shared/types/baseball-state";
 import {
   SOCKET_EVENTS,
   gameRoom,

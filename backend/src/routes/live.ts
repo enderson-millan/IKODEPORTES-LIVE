@@ -17,11 +17,7 @@ function isValidGameId(value: string): boolean {
 }
 
 /** Live tracking API: discovery, on-demand start/stop and current state. */
-export function createLiveRouter({
-  adapter,
-  polling,
-  controlToken,
-}: LiveRouterOptions): Router {
+export function createLiveRouter({ adapter, polling, controlToken }: LiveRouterOptions): Router {
   const router = Router();
 
   router.get("/api/live/discover", async (request, response) => {

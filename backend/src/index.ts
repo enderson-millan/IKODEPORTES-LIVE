@@ -70,7 +70,10 @@ server.listen(config.port, () => {
       .startLiveGames()
       .then((gameIds) => log({ msg: "auto-discover", started: gameIds }))
       .catch((error) =>
-        log({ msg: "auto-discover-failed", error: error instanceof Error ? error.message : String(error) }),
+        log({
+          msg: "auto-discover-failed",
+          error: error instanceof Error ? error.message : String(error),
+        }),
       );
   }
 });

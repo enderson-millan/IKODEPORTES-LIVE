@@ -294,10 +294,7 @@ function toRunner(person: RawPerson | undefined, box: RawTeamBox | undefined) {
   };
 }
 
-function toBases(
-  offense: RawOffense | undefined,
-  battingBox: RawTeamBox | undefined,
-): BasesState {
+function toBases(offense: RawOffense | undefined, battingBox: RawTeamBox | undefined): BasesState {
   return {
     first: Boolean(offense?.first),
     second: Boolean(offense?.second),
@@ -349,8 +346,7 @@ function toPitch(event: RawPlayEvent, index: number): PitchDetail {
     sequence: index + 1,
     type: event.details?.type?.description ?? event.details?.type?.code ?? "Pitch",
     speedMph: typeof speedMph === "number" ? speedMph : undefined,
-    speedKmh:
-      typeof speedMph === "number" ? Math.round(speedMph * 1.609344 * 10) / 10 : undefined,
+    speedKmh: typeof speedMph === "number" ? Math.round(speedMph * 1.609344 * 10) / 10 : undefined,
     result: toPitchResult(event),
     description: event.details?.description,
   };

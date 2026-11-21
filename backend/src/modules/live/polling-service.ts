@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import { applyPatch, type Operation } from "fast-json-patch";
-import type { CanonicalBaseballState, GameHalf, GameStatus, LeagueCode } from "../../../../shared/types/baseball-state";
+import type {
+  CanonicalBaseballState,
+  GameHalf,
+  GameStatus,
+  LeagueCode,
+} from "../../../../shared/types/baseball-state";
 import type { FeedGameSummary, IBaseballFeedAdapter } from "../feeds/types";
 
 interface Runtime {
