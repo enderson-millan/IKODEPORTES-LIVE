@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { OverlayView } from "./_components/OverlayView";
 
 export const metadata: Metadata = {
@@ -17,10 +18,15 @@ export default async function OverlayPage({ params, searchParams }: OverlayPageP
   const rawPanels = query.panels;
   const panels = Array.isArray(rawPanels) ? rawPanels[0] : rawPanels;
 
+  if (gameId !== "demo-live" && !/^\d{4,12}$/.test(gameId)) {
+    notFound();
+  }
+
   // Runtime value (server component): switching between localhost and the
-  // Cloudflare tunnel does not require rebuilding the web image.
+  // Cloudflare tunnel does not require rebuilding the web image. Empty strings
+  // fall through so `LIVE_WS_URL=""` can defer to the build-time value.
   const wsUrl =
-    process.env.LIVE_WS_URL ?? process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:4000";
+    process.env.LIVE_WS_URL || process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000";
 
   return <OverlayView gameId={gameId} wsUrl={wsUrl} panels={panels} />;
 }
