@@ -78,6 +78,83 @@ docker compose -f docker-compose.prod.yml up --build -d
 En Dokploy, cada aplicación se reconstruye desde el mismo `Dockerfile`
 seleccionando el target correspondiente (`web` o `api`).
 
+## API local bajo demanda (PC + túnel propio)
+
+Caso de uso: la API corre en la PC del operador y **solo se levanta cuando hay
+transmisión**. El stack está en `docker-compose.local.yml`.
+
+```bash
+# solo la app (OBS en la misma PC)
+docker compose -f docker-compose.local.yml up -d --build
+
+# app + túnel del PC
+docker compose -f docker-compose.local.yml --profile tunnel up -d --build
+
+# al terminar
+docker compose -f docker-compose.local.yml down
+```
+
+### La regla que define la topología
+
+Un túnel de Cloudflare es un conector **saliente desde la máquina donde corre
+`cloudflared`**. Solo alcanza servicios de **ese** host y de **su** red Docker.
+El `cravil-tunnel` del servidor **no puede** ver un contenedor que corre en tu PC.
+
+Por eso este stack **no** se une a `cloudflare_network`: usa un túnel propio
+(`ikodeportes-local`) en el PC. El túnel central del servidor queda intacto para
+sus otros proyectos.
+
+### Dos topologías válidas
+
+| Topología                                | Web            | API            | Cuándo usarla                                                                                 |
+| ---------------------------------------- | -------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| **A. Todo en el PC**                     | PC (on-demand) | PC (on-demand) | Solo transmitís algunos días y no te importa que el sitio esté caído fuera de eso             |
+| **B. Web siempre online + API en el PC** | Servidor/VPS   | PC (on-demand) | Querés que `live.ikodeportes.com` esté siempre arriba y solo la API se encienda al transmitir |
+
+En la topología B, la web del servidor apunta con `LIVE_WS_URL` a
+`https://api.live.ikodeportes.com` (el túnel del PC). El overlay carga desde el
+servidor y el socket va al PC.
+
+### Pasos (topología A)
+
+1. En Zero Trust → Networks → Tunnels, crear un túnel **nuevo** llamado
+   `ikodeportes-local` (no reutilizar `cravil-server`) y copiar su token.
+2. En ese túnel, agregar dos _Public Hostnames_:
+   - `live.ikodeportes.com` → `http://ikodeportes-web:3000`
+   - `api.live.ikodeportes.com` → `http://ikodeportes-api:4000`
+3. En el `.env` del proyecto: `CLOUDFLARE_TUNNEL_TOKEN=...`,
+   `NEXT_PUBLIC_WS_URL=https://api.live.ikodeportes.com`,
+   `LIVE_WS_URL=https://api.live.ikodeportes.com`,
+   `CORS_ORIGIN=https://live.ikodeportes.com`.
+4. `docker compose -f docker-compose.local.yml --profile tunnel up -d --build`.
+5. En OBS: `https://live.ikodeportes.com/overlay/869962`
+
+> **Un hostname, un dueño.** No agregues `live.` / `api.live.` al túnel del
+> servidor mientras las use el túnel del PC. Cuando migres al VPS, movés los
+> hostnames al túnel del servidor y apagás el del PC.
+
+### Solo local (sin túnel)
+
+Si OBS corre en la misma PC, no hace falta Cloudflare:
+
+```bash
+NEXT_PUBLIC_WS_URL=http://localhost:4100 \
+  docker compose -f docker-compose.local.yml up -d --build
+```
+
+OBS: `http://localhost:3100/overlay/869962`. Para alternar sin reconstruir, la
+web lee `LIVE_WS_URL` en runtime; el build arg solo queda como respaldo.
+
+### Seguridad
+
+- `POST /api/live/games/:id/start` es público (solo inicia polling de un partido
+  real) y lo llama el overlay al abrirse.
+- `POST /api/live/games/:id/stop` exige `CONTROL_TOKEN` si está definido.
+- Opcional: poner Cloudflare Access delante de `api.live.ikodeportes.com` para
+  el panel de operador; el overlay necesita lectura pública del socket.
+- El túnel solo publica lo que declares en los hostnames; no abras puertos en el
+  router.
+
 ## Dimensionamiento del VPS (todo-en-Dokploy)
 
 Perfil: ~8 partidos LVBP, polling `diffPatch` cada 5 s, 1 overlay de OBS por
