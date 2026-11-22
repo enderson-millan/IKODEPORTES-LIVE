@@ -40,6 +40,12 @@ export interface FeedSnapshot {
 export interface FeedPatch {
   timeStamp: string;
   operations: JsonPatchOperation[];
+  /**
+   * Some feeds answer a diff request with a full snapshot instead of patches
+   * (StatsAPI does this when a game goes final / `fullUpdate`). When present,
+   * consumers replace their raw snapshot with this payload.
+   */
+  snapshot?: unknown;
 }
 
 /**

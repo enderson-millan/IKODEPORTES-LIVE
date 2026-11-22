@@ -73,6 +73,17 @@ async function main(): Promise<void> {
 
   const patch = await adapter.fetchPatch(target.gameId, snapshot.timeStamp);
   console.log(`[smoke] diffPatch idle=${patch === null} ops=${patch?.operations.length ?? 0}`);
+
+  // A year-old cursor forces the "full feed instead of patches" response.
+  const stale = await adapter.fetchPatch(target.gameId, "20260101_000000");
+  console.log(
+    `[smoke] stale diff snapshot=${Boolean(stale?.snapshot)} ops=${stale?.operations.length ?? 0}`,
+  );
+  if (stale?.snapshot) {
+    const normalized = adapter.normalize(stale.snapshot);
+    assert(normalized.state.gameId === target.gameId, "snapshot gameId mismatch");
+  }
+
   console.log("[smoke] OK");
 }
 

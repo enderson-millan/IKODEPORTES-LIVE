@@ -42,6 +42,9 @@ class StubAdapter implements IBaseballFeedAdapter {
   readonly id = "mlb-stats" as const;
   readonly league = "LVBP" as const;
   fetchCalls = 0;
+  snapshotOnPatch = false;
+  normalizeStatus: CanonicalBaseballState["status"] = "LIVE";
+  patchGameId = "";
 
   async listGames(): Promise<FeedGameSummary[]> {
     return [];
@@ -58,12 +61,19 @@ class StubAdapter implements IBaseballFeedAdapter {
   }
 
   async fetchPatch(): Promise<FeedPatch | null> {
-    return null;
+    if (!this.snapshotOnPatch) return null;
+    return {
+      timeStamp: "20260101_000100",
+      operations: [],
+      snapshot: { gameId: this.patchGameId },
+    };
   }
 
   normalize(raw: unknown): FeedSnapshot {
     const gameId = (raw as { gameId: string }).gameId;
-    return { state: makeState(gameId), raw, timeStamp: "20260101_000000" };
+    const state = makeState(gameId);
+    state.status = this.normalizeStatus;
+    return { state, raw, timeStamp: "20260101_000100" };
   }
 }
 
@@ -109,6 +119,20 @@ async function main(): Promise<void> {
 
   service.stopAll();
   assert(service.list().length === 0, "stopAll left runtimes behind");
+
+  // A snapshot response (game went final) must replace the live state.
+  adapter.snapshotOnPatch = true;
+  adapter.normalizeStatus = "FINAL";
+  adapter.patchGameId = "8888";
+  const snapshotService = new PollingService(adapter, {
+    intervalMs: 20,
+    onState: () => undefined,
+    maxGames: 5,
+  });
+  await snapshotService.start("8888");
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert(snapshotService.getState("8888")?.status === "FINAL", "snapshot did not replace state");
+  snapshotService.stopAll();
 
   console.log("[check-polling] OK");
 }

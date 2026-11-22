@@ -671,8 +671,22 @@ export class MlbStatsAdapter implements IBaseballFeedAdapter {
       `${this.baseUrl}/api/v1.1/game/${encodeURIComponent(gameId)}/feed/live/diffPatch` +
       `?startTimecode=${encodeURIComponent(fromTimeStamp)}`;
 
-    const payload = await this.getJson<Array<{ diff?: JsonPatchOperation[] }>>(url);
-    const operations = payload.flatMap((entry) => entry.diff ?? []);
+    const payload = await this.getJson<unknown>(url);
+
+    // A final game (or a `fullUpdate`) answers with the whole feed object
+    // instead of an array of patches.
+    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+      const candidate = payload as StatsApiFeed;
+      if (candidate.gamePk !== undefined && candidate.liveData) {
+        return { timeStamp: fromTimeStamp, operations: [], snapshot: candidate };
+      }
+      return null;
+    }
+
+    const entries = Array.isArray(payload)
+      ? (payload as Array<{ diff?: JsonPatchOperation[] }>)
+      : [];
+    const operations = entries.flatMap((entry) => entry.diff ?? []);
     if (operations.length === 0) return null;
 
     return { timeStamp: fromTimeStamp, operations };

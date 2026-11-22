@@ -234,6 +234,30 @@ export class PollingService {
         return;
       }
 
+      // The feed may answer with a full snapshot (e.g. the game just went final).
+      if (patch.snapshot) {
+        const snapshot = this.adapter.normalize(patch.snapshot);
+        runtime.raw = snapshot.raw;
+        runtime.state = snapshot.state;
+        runtime.timeStamp = snapshot.timeStamp || runtime.timeStamp;
+        runtime.updatedAt = Date.now();
+        runtime.errorCount = 0;
+        runtime.lastError = null;
+
+        const snapshotHash = hashRaw(snapshot.raw);
+        if (snapshotHash !== runtime.hash) {
+          runtime.hash = snapshotHash;
+          this.emit(runtime);
+          this.log({
+            event: "state-replaced",
+            gameId,
+            timeStamp: runtime.timeStamp,
+            status: snapshot.state.status,
+          });
+        }
+        return;
+      }
+
       const result = applyPatch(runtime.raw, patch.operations as Operation[], false, true);
       runtime.raw = result.newDocument;
 
