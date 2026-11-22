@@ -60,3 +60,10 @@ ode scripts/verify-live.mjs 869962 con API local: /health, POST /start, GET /sta
   - **B2** — el default no vacío de LIVE_WS_URL en el compose eclipsaba NEXT_PUBLIC_WS_URL en el modo "solo local". Corregido con LIVE_WS_URL: ${"$"}{LIVE_WS_URL:-}` en compose, || en el server component y el comando documentado usando LIVE_WS_URL. Commit e3170e9.
 - **N1** — No bloqueante: /stop queda abierto si CONTROL_TOKEN está vacío. Antes de exponer por túnel, definir el token. Se agregó MAX_TRACKED_GAMES=20 como tope de /start públicos.
 - **N2** — D en StatsAPI es _Delayed_; el contrato todavía no tiene DELAYED, se mapea a POSTPONED (documentado en el adaptador).
+
+## Verificación con imágenes reales (Docker)
+
+- **V3** — Docker Desktop activo. docker build --target api y --target web OK. docker compose -f docker-compose.local.yml up -d --build con db+api+web en healthy; puertos 3100/4100/5434 en localhost.
+- /api/live/discover devolvió 3 juegos LVBP (869962 FINAL, 869988 LIVE, 869984 LIVE). POST /start de 869988 → LIVE 5-7, 9 defensores, 82 jugadas.
+- Chrome headless sobre http://127.0.0.1:3100/overlay/869988: ambos equipos, <svg>, campo, sin **next_error** y sin errores de consola. ?panels=none|field|plays|scoreboard oculta los paneles correctamente.
+- **Bug real encontrado solo en Docker**: AuthProvider llamaba a createBrowserClient con NEXT_PUBLIC_SUPABASE_* vacíos (el build Docker no copia .env.local), lanzando @supabase/ssr: Your project's URL and API key are required y tumbando la página con **next_error**. Corregido con un guard AUTH_CONFIGURED que deja la auth opcional. Commit e8ecb8d.
