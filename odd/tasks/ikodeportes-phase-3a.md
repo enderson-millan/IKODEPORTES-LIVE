@@ -67,3 +67,5 @@ ode scripts/verify-live.mjs 869962 con API local: /health, POST /start, GET /sta
 - /api/live/discover devolvió 3 juegos LVBP (869962 FINAL, 869988 LIVE, 869984 LIVE). POST /start de 869988 → LIVE 5-7, 9 defensores, 82 jugadas.
 - Chrome headless sobre http://127.0.0.1:3100/overlay/869988: ambos equipos, <svg>, campo, sin **next_error** y sin errores de consola. ?panels=none|field|plays|scoreboard oculta los paneles correctamente.
 - **Bug real encontrado solo en Docker**: AuthProvider llamaba a createBrowserClient con NEXT_PUBLIC_SUPABASE_* vacíos (el build Docker no copia .env.local), lanzando @supabase/ssr: Your project's URL and API key are required y tumbando la página con **next_error**. Corregido con un guard AUTH_CONFIGURED que deja la auth opcional. Commit e8ecb8d.
+
+- **V4** — Al terminar un juego mientras se monitorea, diffPatch responde con el feed completo (objeto, no array) y payload.flatMap fallaba (errorCount: 1). Corregido con FeedPatch.snapshot: el poller reemplaza el snapshot y emite state-replaced. Verificado con cursor viejo (stale diff snapshot=true) y el test check:polling (snapshot → FINAL). Commit 31e7fe5.
