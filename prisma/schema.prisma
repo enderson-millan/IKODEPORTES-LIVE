@@ -1,0 +1,66 @@
+// IKODEPORTES Live — canonical persistence model.
+// PostgreSQL 17. The enum values mirror `shared/types/baseball-state.ts`
+// (LeagueCode / GameStatus); keep both in sync when adding a league or status.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeagueCode {
+  LVBP
+  MLB
+  LIDOM
+  LMP
+  WBC
+  SOFTBALL
+  CUSTOM
+}
+
+enum GameStatus {
+  SCHEDULED
+  LIVE
+  FINAL
+  POSTPONED
+  CANCELED
+}
+
+/// One tracked game. `latestState` holds the last CanonicalBaseballState
+/// snapshot so the API can answer without recomputing the feed.
+model Game {
+  id             String     @id @default(cuid())
+  league         LeagueCode
+  externalGameId String?
+  feedUrl        String?
+  status         GameStatus @default(SCHEDULED)
+  latestState    Json?
+  startsAt       DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  plays PlayEvent[]
+
+  /// A feed game is unique inside its league; null external ids never collide.
+  @@unique([league, externalGameId])
+  @@index([status])
+  @@index([startsAt])
+}
+
+/// Append-only play-by-play log. Sequence is monotonic per game.
+model PlayEvent {
+  id          String   @id @default(cuid())
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  sequence    Int
+  inning      Int
+  isTopInning Boolean
+  description String
+  createdAt   DateTime @default(now())
+
+  @@unique([gameId, sequence])
+  @@index([gameId, createdAt])
+}

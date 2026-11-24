@@ -4,18 +4,30 @@ import { useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useApp } from "@/lib/app-context";
 
+const AUTH_CONFIGURED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
+
 /**
- * Sincroniza o usuário autenticado do Supabase com o AppContext.
- * Deve ser renderizado dentro do AppProvider.
- * Escuta onAuthStateChange para manter o estado sempre atualizado.
+ * Sincroniza el usuario autenticado de Supabase con el AppContext.
+ * Debe renderizarse dentro del AppProvider.
+ *
+ * La autenticación es opcional: sin `NEXT_PUBLIC_SUPABASE_*` el provider no
+ * inicializa el cliente (crear el cliente sin configuración lanza y tumba
+ * cualquier página, incluido el overlay).
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser } = useApp();
 
   useEffect(() => {
+    if (!AUTH_CONFIGURED) {
+      setUser(null);
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
 
-    // Carrega o usuário atual na montagem
+    // Carga el usuario actual en la montura
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser({
@@ -29,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Escuta mudanças de auth (login, logout, refresh)
+    // Escucha cambios de auth (login, logout, refresh)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {

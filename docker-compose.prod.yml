@@ -1,0 +1,79 @@
+# Production stack: web :3000 · api :4000 · postgres :5432
+# Usage: docker compose -f docker-compose.prod.yml up --build -d
+# Database credentials and public URLs come from the environment (Dokploy).
+name: ikodeportes-prod
+
+services:
+  db_prod:
+    image: postgres:17-alpine
+    container_name: ikodeportes-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-ikodeportes}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_NAME:-db_prod}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ikodeportes} -d ${DB_NAME:-db_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api_prod:
+    build:
+      context: .
+      target: api
+    container_name: ikodeportes-api-prod
+    restart: always
+    environment:
+      PORT: 4000
+      CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
+      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-3000}
+      DATABASE_URL: postgresql://${DB_USER:-ikodeportes}:${DB_PASSWORD}@db_prod:5432/${DB_NAME:-db_prod}?schema=public
+    ports:
+      - "4000:4000"
+    depends_on:
+      db_prod:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web_prod:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:?NEXT_PUBLIC_WS_URL is required}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    container_name: ikodeportes-web-prod
+    restart: always
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL}
+      LIVE_API_INTERNAL_URL: http://api_prod:4000
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api_prod:
+        condition: service_healthy
+
+volumes:
+  db_prod_data:
