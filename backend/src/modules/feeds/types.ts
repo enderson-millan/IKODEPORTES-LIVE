@@ -1,25 +1,12 @@
 import type {
   CanonicalBaseballState,
   FeedAdapterId,
-  GameHalf,
-  GameStatus,
+  GameSummary,
   LeagueCode,
-  TeamIdentity,
 } from "../../../../shared/types/baseball-state";
 
 /** A game discovered by an adapter before it is tracked. */
-export interface FeedGameSummary {
-  gameId: string;
-  league: LeagueCode;
-  status: GameStatus;
-  away: TeamIdentity;
-  home: TeamIdentity;
-  awayScore: number;
-  homeScore: number;
-  scheduledStart?: string;
-  inning?: number;
-  half?: GameHalf;
-}
+export type FeedGameSummary = GameSummary;
 
 /** RFC 6902 operation, as returned by the StatsAPI diff endpoint. */
 export interface JsonPatchOperation {

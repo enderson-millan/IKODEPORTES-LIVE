@@ -637,6 +637,7 @@ export class MlbStatsAdapter implements IBaseballFeedAdapter {
           awayScore: game.teams?.away?.score ?? 0,
           homeScore: game.teams?.home?.score ?? 0,
           scheduledStart: game.gameDate,
+          venue: game.venue?.name,
           inning: inning && inning > 0 ? inning : undefined,
           half:
             inning && inning > 0
