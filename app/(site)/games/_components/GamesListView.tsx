@@ -4,7 +4,7 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { ArrowRight, CalendarClock, MapPin, Radio } from "lucide-react";
-import type { CanonicalBaseballState } from "@shared/types/baseball-state";
+import type { GameSummary } from "@shared/types/baseball-state";
 import { useApp } from "@/lib/app-context";
 import { STATUS_LABEL_KEY } from "@/lib/game-format";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,13 @@ function formatStart(value?: string): string {
   return value ? `${dayjs.utc(value).format("DD MMM YYYY · HH:mm")} UTC` : "—";
 }
 
-export function GamesListView({ games }: { games: CanonicalBaseballState[] }) {
+export function GamesListView({
+  games,
+  apiOffline,
+}: {
+  games: GameSummary[];
+  apiOffline?: boolean;
+}) {
   const { t } = useApp();
 
   return (
@@ -33,6 +39,12 @@ export function GamesListView({ games }: { games: CanonicalBaseballState[] }) {
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("gamesSubtitle")}</p>
         </header>
 
+        {apiOffline && (
+          <p className="mt-4 rounded-lg border border-brand-gold/25 bg-brand-gold/5 px-3 py-2 text-xs text-brand-gold">
+            {t("apiOffline")}
+          </p>
+        )}
+
         {games.length === 0 ? (
           <p className="mt-10 rounded-xl border border-dashed border-white/15 py-16 text-center text-sm text-muted-foreground">
             {t("noGames")}
@@ -41,6 +53,8 @@ export function GamesListView({ games }: { games: CanonicalBaseballState[] }) {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {games.map((game) => {
               const live = game.status === "LIVE";
+              const demo = game.gameId === "demo-live";
+
               return (
                 <Link
                   key={game.gameId}
@@ -57,19 +71,23 @@ export function GamesListView({ games }: { games: CanonicalBaseballState[] }) {
                       {t(STATUS_LABEL_KEY[game.status])}
                     </span>
                     <span className="text-muted-foreground">
-                      {game.league} · {t("demoBadge")}
+                      {game.league}
+                      {demo ? ` · ${t("demoBadge")}` : ""}
                     </span>
                   </div>
 
                   <div className="mt-4 space-y-2">
-                    {[game.matchup.away, game.matchup.home].map((team, index) => (
-                      <div key={team.id} className="flex items-center gap-2.5">
+                    {[
+                      { team: game.away, score: game.awayScore },
+                      { team: game.home, score: game.homeScore },
+                    ].map(({ team, score }) => (
+                      <div key={team.id || team.code} className="flex items-center gap-2.5">
                         <TeamBadge team={team} size={30} />
                         <span className="min-w-0 flex-1 truncate font-display text-sm font-bold uppercase">
                           {team.name}
                         </span>
                         <span className="font-display text-xl font-black tabular-nums text-brand-gold">
-                          {index === 0 ? game.score.away : game.score.home}
+                          {score}
                         </span>
                       </div>
                     ))}
@@ -83,7 +101,12 @@ export function GamesListView({ games }: { games: CanonicalBaseballState[] }) {
                     {game.venue && (
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {game.venue.name}
+                        {game.venue}
+                      </span>
+                    )}
+                    {live && game.inning && (
+                      <span className="rounded bg-brand-gold/15 px-1.5 py-0.5 font-bold text-brand-gold">
+                        {game.inning}° {game.half === "BOTTOM" ? "▼" : "▲"}
                       </span>
                     )}
                   </div>
