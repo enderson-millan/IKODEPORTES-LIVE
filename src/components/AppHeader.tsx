@@ -55,7 +55,7 @@ export function AppHeader() {
 
   const navItems = [
     { to: "/games", label: t("navGames") },
-    { to: "/games/demo-live", label: t("navLive") },
+    { to: "/games/demo-live", label: t("demoBadge") },
   ];
 
   const currentLang = LANGS.find((l) => l.code === lang) ?? LANGS[0];
