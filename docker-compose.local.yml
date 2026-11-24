@@ -126,6 +126,8 @@ services:
       HOSTNAME: 0.0.0.0
       # URL de runtime (server components). Vacío = usar NEXT_PUBLIC_WS_URL.
       LIVE_WS_URL: ${LIVE_WS_URL:-}
+      # API interna para los server components (lista/detalle de partidos).
+      LIVE_API_INTERNAL_URL: ${LIVE_API_INTERNAL_URL:-http://ikodeportes-api:4000}
       NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-https://api.live.ikodeportes.com}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
