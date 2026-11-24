@@ -44,3 +44,7 @@ backend/prisma
 *.njsproj
 *.sln
 *.sw?
+# Local tooling artifacts (agent sessions, browser runs, verification evidence)
+.playwright-cli/
+.playwright-mcp/
+odd/evidence/
