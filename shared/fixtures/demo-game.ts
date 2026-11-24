@@ -6,7 +6,7 @@
  * Timestamps are fixed so server and client render identical HTML.
  */
 
-import type { CanonicalBaseballState, LineScoreInning } from "../types/baseball-state";
+import type { CanonicalBaseballState, GameSummary, LineScoreInning } from "../types/baseball-state";
 
 export const DEMO_GAME_ID = "demo-live";
 
@@ -231,4 +231,19 @@ export const demoGame: CanonicalBaseballState = {
       },
     },
   ],
+};
+
+/** Summary row used by the games list when the live API is offline. */
+export const demoGameSummary: GameSummary = {
+  gameId: DEMO_GAME_ID,
+  league: demoGame.league,
+  status: demoGame.status,
+  away: demoGame.matchup.away,
+  home: demoGame.matchup.home,
+  awayScore: demoGame.score.away,
+  homeScore: demoGame.score.home,
+  scheduledStart: demoGame.scheduledStart,
+  inning: demoGame.clock.inning,
+  half: demoGame.clock.half,
+  venue: demoGame.venue?.name,
 };

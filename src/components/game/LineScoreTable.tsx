@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface LineScoreTableProps {
   state: CanonicalBaseballState;
+  compact?: boolean;
 }
 
 function TeamRow({
@@ -18,16 +19,21 @@ function TeamRow({
   currentInning,
   currentHalf,
   isHome,
+  compact,
 }: {
   team: TeamIdentity;
   line: TeamLineScore;
   currentInning: number;
   currentHalf: "TOP" | "BOTTOM";
   isHome: boolean;
+  compact: boolean;
 }) {
   return (
     <tr className="border-t border-white/5">
-      <th scope="row" className="whitespace-nowrap py-2 pr-3 text-left">
+      <th
+        scope="row"
+        className={cn("whitespace-nowrap text-left", compact ? "py-1 pr-1" : "py-2 pr-3")}
+      >
         <span className="font-display text-xs font-black uppercase text-brand-gold">
           {team.code}
         </span>
@@ -43,8 +49,12 @@ function TeamRow({
           <td
             key={inning.inning}
             className={cn(
-              "px-1 py-2 text-center tabular-nums",
-              active ? "bg-brand-gold/10 font-semibold text-brand-gold" : "text-foreground/80",
+              compact
+                ? "px-0.5 py-1 text-center tabular-nums"
+                : "px-1 py-2 text-center tabular-nums",
+              active
+                ? "bg-live/25 font-display font-black text-live ring-1 ring-inset ring-live/40"
+                : "text-foreground/80",
             )}
           >
             {inning.runs ?? "–"}
@@ -58,13 +68,13 @@ function TeamRow({
   );
 }
 
-export function LineScoreTable({ state }: LineScoreTableProps) {
+export function LineScoreTable({ state, compact = false }: LineScoreTableProps) {
   const { t } = useApp();
   const innings = state.lineScore.away.innings;
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[420px] text-xs">
+      <table className={cn("w-full text-xs", compact ? "text-[10px]" : "min-w-[420px]")}>
         <thead>
           <tr className="text-[10px] uppercase tracking-widest text-muted-foreground">
             <th className="pb-2" />
@@ -85,6 +95,7 @@ export function LineScoreTable({ state }: LineScoreTableProps) {
             currentInning={state.clock.inning}
             currentHalf={state.clock.half}
             isHome={false}
+            compact={compact}
           />
           <TeamRow
             team={state.matchup.home}
@@ -92,6 +103,7 @@ export function LineScoreTable({ state }: LineScoreTableProps) {
             currentInning={state.clock.inning}
             currentHalf={state.clock.half}
             isHome
+            compact={compact}
           />
         </tbody>
       </table>

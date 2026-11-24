@@ -1,16 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { ArrowLeft, Clock3, MapPin } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarDays,
+  Clock3,
+  Diamond,
+  Gauge,
+  MapPin,
+  MessageSquare,
+  Swords,
+  Table2,
+  Users,
+} from "lucide-react";
 import type {
   CanonicalBaseballState,
-  PitchDetail,
+  GameSummary,
   PitchResult,
 } from "@shared/types/baseball-state";
 import { useApp } from "@/lib/app-context";
-import { STATUS_LABEL_KEY, formatAverage, formatEra, formatPitchSpeed } from "@/lib/game-format";
+import {
+  STATUS_LABEL_KEY,
+  formatAverage,
+  formatEra,
+  formatLeagueDateTime,
+  formatPitchSpeed,
+} from "@/lib/game-format";
 import { cn } from "@/lib/utils";
 import { TeamBadge } from "@/components/game/TeamBadge";
 import { BasesDiamond } from "@/components/game/BasesDiamond";
@@ -18,8 +34,7 @@ import { CountGrid } from "@/components/game/CountGrid";
 import { LineScoreTable } from "@/components/game/LineScoreTable";
 import { PlayByPlayFeed } from "@/components/game/PlayByPlayFeed";
 import { FieldView } from "@/components/game/FieldView";
-
-dayjs.extend(utc);
+import { GameTicker } from "@/components/game/GameTicker";
 
 const PITCH_RESULT_KEY: Record<PitchResult, string> = {
   BALL: "BOLA",
@@ -41,269 +56,420 @@ const PITCH_RESULT_CLASS: Record<PitchResult, string> = {
   OTHER: "bg-white/10 text-muted-foreground",
 };
 
-function formatTimestamp(value?: string): string {
-  if (!value) return "—";
-  return `${dayjs.utc(value).format("DD MMM YYYY · HH:mm")} UTC`;
-}
-
 function Panel({
   title,
+  icon,
+  actions,
   children,
   className,
+  bodyClassName,
 }: {
   title: string;
+  icon?: React.ReactNode;
+  actions?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  bodyClassName?: string;
 }) {
   return (
-    <section className={cn("rounded-xl border border-white/10 bg-surface-2/70 p-4", className)}>
-      <h2 className="mb-3 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-        {title}
-      </h2>
-      {children}
+    <section
+      className={cn("flex flex-col rounded-xl border border-white/10 bg-surface-2/70", className)}
+    >
+      <header className="flex shrink-0 items-center gap-1.5 border-b border-white/5 px-2.5 py-1.5">
+        {icon}
+        <h2 className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          {title}
+        </h2>
+        {actions && <div className="ml-auto">{actions}</div>}
+      </header>
+      <div className={cn("px-2.5 py-2", bodyClassName)}>{children}</div>
     </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md bg-white/5 px-2 py-1.5 text-center">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </p>
-      <p className="font-display text-sm font-bold tabular-nums">{value}</p>
+    <div className="flex-1 rounded bg-black/25 px-1 py-0.5 text-center">
+      <p className="text-[8px] font-bold uppercase tracking-widest text-white/50">{label}</p>
+      <p className="font-display text-[13px] font-black tabular-nums text-white">{value}</p>
     </div>
   );
 }
 
-function PitchRow({ pitch }: { pitch: PitchDetail }) {
+function CountChip({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: number;
+  className: string;
+}) {
   return (
-    <li className="flex items-center gap-2 rounded-md bg-white/5 px-2 py-1.5">
-      <span className="w-4 text-center font-display text-[11px] font-bold tabular-nums text-muted-foreground">
-        {pitch.sequence}
-      </span>
-      <span
-        className={cn(
-          "min-w-[64px] rounded px-1.5 py-0.5 text-center font-display text-[9px] font-black uppercase tracking-wider",
-          PITCH_RESULT_CLASS[pitch.result],
-        )}
-      >
-        {PITCH_RESULT_KEY[pitch.result]}
-      </span>
-      <span className="flex-1 truncate text-xs">{pitch.type}</span>
-      <span className="font-display text-xs font-bold tabular-nums text-brand-gold">
-        {formatPitchSpeed(pitch)}
-      </span>
-    </li>
+    <span
+      className={cn(
+        "rounded px-1 py-0.5 font-display text-[10px] font-black tabular-nums tracking-wide",
+        className,
+      )}
+    >
+      {label} {value}
+    </span>
   );
 }
 
-export function GameDetailView({ state }: { state: CanonicalBaseballState }) {
+/**
+ * Single-screen data center. Above the `desk` threshold the whole game fits the
+ * viewport and only the defense list and the play-by-play scroll inside their
+ * panels; below it panels keep natural heights and the page scrolls.
+ */
+export function GameDetailView({
+  state,
+  slate = [],
+}: {
+  state: CanonicalBaseballState;
+  slate?: GameSummary[];
+}) {
   const { t } = useApp();
   const { matchup, score, clock, count, bases, atBat, onDeck, defense } = state;
   const halfLabel = clock.half === "TOP" ? t("topHalf") : t("bottomHalf");
+  const statusLabel = t(STATUS_LABEL_KEY[state.status]);
+  const live = state.status === "LIVE";
+
+  // League time (not UTC, not the viewer's clock): deterministic on both sides.
+  const stamp = (value?: string) => {
+    const formatted = formatLeagueDateTime(value);
+    return formatted ? `${formatted} ${t("timezoneAbbr")}` : "—";
+  };
+
+  const baseRows = [
+    { label: "1B", occupied: bases.first, runner: bases.firstRunner },
+    { label: "2B", occupied: bases.second, runner: bases.secondRunner },
+    { label: "3B", occupied: bases.third, runner: bases.thirdRunner },
+  ].filter((row) => row.occupied);
+
+  const lastPitch = atBat
+    ? [...atBat.pitches].sort((left, right) => right.sequence - left.sequence)[0]
+    : undefined;
 
   return (
-    <div className="bg-stadium min-h-[calc(100vh-4rem)] pb-12">
-      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-        <Link
-          href="/games"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {t("backToGames")}
-        </Link>
+    <div className="bg-stadium flex min-h-0 flex-col desk:h-full">
+      <div className="mx-auto flex w-full max-w-[1900px] flex-1 flex-col gap-2 px-2.5 py-2.5 desk:min-h-0 desk:overflow-hidden">
+        <GameTicker games={slate} activeGameId={state.gameId} />
 
-        {/* ── Scoreboard header ──────────────────────────────────────────── */}
-        <header className="mt-3 rounded-2xl border border-white/10 bg-surface-2/80 p-4 shadow-xl sm:p-5">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="flex items-center gap-1.5 text-live">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-live opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-live" />
-              </span>
-              {t(STATUS_LABEL_KEY[state.status])}
+        {/* ── Scoreboard ──────────────────────────────────────────────── */}
+        <header className="shrink-0 overflow-hidden rounded-xl border border-white/10 bg-surface-2/85">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-white/5 px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+            <Link
+              href="/games"
+              className="inline-flex items-center gap-1 font-medium normal-case tracking-normal transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {t("backToGames")}
+            </Link>
+            <span
+              className={cn(
+                "rounded px-1.5 py-0.5 text-[9px] font-bold",
+                live ? "bg-live/20 text-live" : "bg-white/10 text-muted-foreground",
+              )}
+            >
+              {statusLabel}
             </span>
-            <span>
-              {t("inning")} {clock.inning} · {halfLabel}
+            <span className="text-[9px]">
+              {state.league}
+              {state.season ? ` · ${state.season}` : ""}
+            </span>
+            <span className="ml-auto flex flex-wrap items-center gap-3 text-[9px]">
+              {state.venue && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {state.venue.name}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-3 w-3" />
+                {stamp(state.scheduledStart)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock3 className="h-3 w-3" />
+                {t("lastUpdated")}: {stamp(state.updatedAt)}
+              </span>
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-            <div className="flex items-center gap-3">
-              <TeamBadge team={matchup.away} size={48} />
+          <div className="grid grid-cols-1 items-center gap-2 px-3 py-2 sm:grid-cols-[1fr_auto_1fr]">
+            <div className="flex min-w-0 items-center gap-2">
+              <TeamBadge team={matchup.away} size={42} />
               <div className="min-w-0">
-                <p className="truncate font-display text-base font-bold uppercase leading-tight sm:text-lg">
+                <p className="truncate font-display text-base font-black uppercase leading-none tracking-wide">
                   {matchup.away.name}
                 </p>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {state.league}
-                  {state.season ? ` · ${state.season}` : ""}
+                <p className="mt-0.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {matchup.away.code}
                 </p>
+              </div>
+              <p className="ml-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold">
+                {score.away}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <p className="whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                {t("inning")} {clock.inning} · {halfLabel}
+              </p>
+              <div className="flex items-center gap-1">
+                <CountChip
+                  label="B"
+                  value={count.balls}
+                  className="bg-brand-blue/20 text-brand-blue"
+                />
+                <CountChip
+                  label="S"
+                  value={count.strikes}
+                  className="bg-brand-gold/20 text-brand-gold"
+                />
+                <CountChip label="O" value={count.outs} className="bg-live/20 text-live" />
               </div>
             </div>
 
-            <div className="font-display text-4xl font-black tabular-nums text-brand-gold sm:text-5xl">
-              {score.away}
-              <span className="mx-2 text-muted-foreground">–</span>
-              {score.home}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 text-right">
-              <div className="min-w-0">
-                <p className="truncate font-display text-base font-bold uppercase leading-tight sm:text-lg">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="mr-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold">
+                {score.home}
+              </p>
+              <div className="min-w-0 text-right">
+                <p className="truncate font-display text-base font-black uppercase leading-none tracking-wide">
                   {matchup.home.name}
                 </p>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {matchup.home.shortName ?? matchup.home.code}
+                <p className="mt-0.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {matchup.home.code}
                 </p>
               </div>
-              <TeamBadge team={matchup.home} size={48} />
+              <TeamBadge team={matchup.home} size={42} />
             </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-white/10 pt-3 text-[11px] text-muted-foreground">
-            {state.venue && (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                {state.venue.name}
-                {state.venue.city ? ` · ${state.venue.city}` : ""}
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <Clock3 className="h-3.5 w-3.5" />
-              {formatTimestamp(state.scheduledStart)}
-            </span>
-            <span>
-              {t("lastUpdated")}: {formatTimestamp(state.updatedAt)}
-            </span>
           </div>
         </header>
 
-        {/* ── Body ──────────────────────────────────────────────────────── */}
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-4">
-            <Panel title={t("atBat")}>
-              {atBat ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg bg-brand-blue-strong/20 p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-blue">
-                      {t("batter")}
-                    </p>
-                    <p className="mt-1 font-display text-lg font-bold uppercase leading-tight">
-                      {atBat.batter.name}
-                    </p>
-                    <div className="mt-2 grid grid-cols-3 gap-1.5">
-                      <Stat label={t("average")} value={formatAverage(atBat.batter.average)} />
-                      <Stat label={t("homeRuns")} value={atBat.batter.homeRuns ?? "—"} />
-                      <Stat label={t("rbi")} value={atBat.batter.rbi ?? "—"} />
-                    </div>
-                    {atBat.batter.todayLine && (
-                      <p className="mt-2 text-[11px] text-muted-foreground">
-                        {atBat.batter.todayLine}
-                      </p>
-                    )}
-                  </div>
+        {/* ── Dashboard ───────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,258px)_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px] desk:min-h-0 desk:flex-1">
+          {/* Left: count, bases, on-deck, defense */}
+          <aside className="flex min-h-0 flex-col gap-2">
+            <Panel title={t("count")} icon={<Activity className="h-3 w-3 text-brand-blue" />}>
+              <CountGrid count={count} />
+            </Panel>
 
-                  <div className="rounded-lg bg-brand-gold/10 p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-gold">
-                      {t("pitcher")}
-                    </p>
-                    <p className="mt-1 font-display text-lg font-bold uppercase leading-tight">
-                      {atBat.pitcher.name}
-                    </p>
-                    <div className="mt-2 grid grid-cols-3 gap-1.5">
-                      <Stat label={t("era")} value={formatEra(atBat.pitcher.era)} />
-                      <Stat label="REC" value={atBat.pitcher.record ?? "—"} />
-                      <Stat label="P" value={atBat.pitcher.pitchCount ?? "—"} />
-                    </div>
-                  </div>
-                </div>
+            <Panel title={t("bases")} icon={<Diamond className="h-3 w-3 text-brand-gold" />}>
+              <div className="flex items-center gap-2">
+                <BasesDiamond bases={bases} className="h-20 w-20 shrink-0" />
+                {baseRows.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground">{t("basesEmpty")}</p>
+                ) : (
+                  <ul className="min-w-0 space-y-1">
+                    {baseRows.map((row) => (
+                      <li key={row.label} className="flex items-center gap-1.5 text-[11px]">
+                        <span className="rounded bg-brand-gold/20 px-1 font-display text-[9px] font-black text-brand-gold">
+                          {row.label}
+                        </span>
+                        <span className="truncate">{row.runner?.name ?? "—"}</span>
+                        {row.runner?.jerseyNumber && (
+                          <span className="ml-auto tabular-nums text-muted-foreground">
+                            #{row.runner.jerseyNumber}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Panel>
+
+            <Panel title={t("onDeck")}>
+              {onDeck.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">—</p>
               ) : (
-                <p className="text-sm text-muted-foreground">—</p>
+                <ul className="space-y-1">
+                  {onDeck.map((batter) => (
+                    <li
+                      key={`${batter.order}-${batter.name}`}
+                      className="flex items-center gap-1.5 text-[11px]"
+                    >
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/10 font-display text-[9px] font-black">
+                        {batter.order}
+                      </span>
+                      <span className="truncate">{batter.name}</span>
+                      <span className="ml-auto tabular-nums text-muted-foreground">
+                        {formatAverage(batter.average)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </Panel>
 
-            <Panel title={t("field")}>
-              <div className="aspect-[25/16] w-full">
+            <Panel
+              title={t("defense")}
+              icon={<Users className="h-3 w-3 text-brand-gold" />}
+              actions={
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                  {defense.length}
+                </span>
+              }
+              className="desk:min-h-0 desk:flex-1"
+              bodyClassName="min-h-0 flex-1 overflow-y-auto"
+            >
+              <ul className="space-y-0.5 pr-1">
+                {defense.map((slot) => (
+                  <li
+                    key={`${slot.position}-${slot.playerName}`}
+                    className="flex items-center gap-2 rounded px-1 py-0.5 text-[11px] odd:bg-white/5"
+                  >
+                    <span className="w-7 shrink-0 rounded bg-brand-gold/15 text-center font-display text-[9px] font-black uppercase text-brand-gold">
+                      {slot.position}
+                    </span>
+                    <span className="truncate">{slot.playerName}</span>
+                    {slot.jerseyNumber && (
+                      <span className="ml-auto tabular-nums text-muted-foreground">
+                        #{slot.jerseyNumber}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          </aside>
+
+          {/* Center: duel, field, pitches */}
+          <section className="flex min-h-0 flex-col gap-2">
+            <Panel
+              title={t("atBat")}
+              icon={<Swords className="h-3 w-3 text-live" />}
+              actions={
+                lastPitch && (
+                  <span className="font-display text-[9px] font-black uppercase tracking-widest text-brand-gold">
+                    {formatPitchSpeed(lastPitch)} · {PITCH_RESULT_KEY[lastPitch.result]}
+                  </span>
+                )
+              }
+            >
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-lg border border-brand-blue/30 bg-brand-blue-strong/20 px-2 py-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-blue">
+                      {t("batter")}
+                    </p>
+                    {atBat?.batter.bats && (
+                      <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                        {atBat.batter.bats}
+                      </span>
+                    )}
+                  </div>
+                  <p className="truncate font-display text-lg font-black uppercase leading-tight">
+                    {atBat?.batter.name ?? "—"}
+                  </p>
+                  <div className="mt-1 flex gap-1">
+                    <MiniStat label={t("average")} value={formatAverage(atBat?.batter.average)} />
+                    <MiniStat label={t("homeRuns")} value={atBat?.batter.homeRuns ?? "—"} />
+                    <MiniStat label={t("rbi")} value={atBat?.batter.rbi ?? "—"} />
+                  </div>
+                  {atBat?.batter.todayLine && (
+                    <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                      {atBat.batter.todayLine}
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-lg border border-brand-gold/25 bg-brand-gold/10 px-2 py-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-gold">
+                      {t("pitcher")}
+                    </p>
+                    {atBat?.pitcher.throws && (
+                      <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                        {atBat.pitcher.throws}
+                      </span>
+                    )}
+                  </div>
+                  <p className="truncate font-display text-lg font-black uppercase leading-tight">
+                    {atBat?.pitcher.name ?? "—"}
+                  </p>
+                  <div className="mt-1 flex gap-1">
+                    <MiniStat label={t("era")} value={formatEra(atBat?.pitcher.era)} />
+                    <MiniStat label="REC" value={atBat?.pitcher.record ?? "—"} />
+                    <MiniStat label="P" value={atBat?.pitcher.pitchCount ?? "—"} />
+                  </div>
+                </div>
+              </div>
+            </Panel>
+
+            <Panel
+              title={t("field")}
+              icon={<Gauge className="h-3 w-3 text-emerald-400" />}
+              className="desk:min-h-0 desk:flex-1"
+              bodyClassName="min-h-0 flex-1"
+            >
+              <div className="h-full min-h-[240px] desk:min-h-0">
                 <FieldView state={state} />
               </div>
             </Panel>
 
-            <Panel title={t("pitchesOfAtBat")}>
+            <Panel
+              title={t("pitchesOfAtBat")}
+              actions={
+                atBat && (
+                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                    {atBat.pitches.length}
+                  </span>
+                )
+              }
+            >
               {atBat && atBat.pitches.length > 0 ? (
-                <ul className="space-y-1.5">
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
                   {[...atBat.pitches]
-                    .sort((a, b) => a.sequence - b.sequence)
+                    .sort((left, right) => left.sequence - right.sequence)
                     .map((pitch) => (
-                      <PitchRow key={pitch.sequence} pitch={pitch} />
+                      <div
+                        key={pitch.sequence}
+                        className="flex shrink-0 items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2 py-1"
+                      >
+                        <span className="font-display text-[9px] font-black tabular-nums text-muted-foreground">
+                          {pitch.sequence}
+                        </span>
+                        <span
+                          className={cn(
+                            "rounded px-1 py-0.5 text-[9px] font-black uppercase tracking-wider",
+                            PITCH_RESULT_CLASS[pitch.result],
+                          )}
+                        >
+                          {PITCH_RESULT_KEY[pitch.result]}
+                        </span>
+                        <span className="text-[11px]">{pitch.type}</span>
+                        <span className="font-display text-[11px] font-bold tabular-nums text-brand-gold">
+                          {formatPitchSpeed(pitch)}
+                        </span>
+                      </div>
                     ))}
-                </ul>
+                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">—</p>
+                <p className="text-[11px] text-muted-foreground">—</p>
               )}
             </Panel>
+          </section>
 
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
-              <Panel title={t("count")}>
-                <CountGrid count={count} />
-              </Panel>
-              <Panel title={t("bases")} className="flex flex-col items-center justify-between">
-                <BasesDiamond bases={bases} />
-                <p className="mt-1 text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {bases.first || bases.second || bases.third ? "· · ·" : t("basesEmpty")}
-                </p>
-              </Panel>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Panel title={t("onDeck")}>
-                <ul className="space-y-2">
-                  {onDeck.map((batter) => (
-                    <li key={`${batter.order}-${batter.name}`} className="flex items-start gap-2">
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 font-display text-[10px] font-black">
-                        #{batter.order}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{batter.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {batter.note ?? `${t("average")} ${formatAverage(batter.average)}`}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-
-              <Panel title={t("defense")}>
-                <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                  {defense.map((slot) => (
-                    <li
-                      key={`${slot.position}-${slot.playerName}`}
-                      className="flex items-baseline gap-1.5 text-xs"
-                    >
-                      <span className="w-7 shrink-0 font-display text-[10px] font-black uppercase text-brand-gold">
-                        {slot.position}
-                      </span>
-                      <span className="truncate">{slot.playerName}</span>
-                      {slot.jerseyNumber && (
-                        <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
-                          #{slot.jerseyNumber}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-            </div>
-          </div>
-
-          <aside className="space-y-4">
-            <Panel title={t("lineScore")}>
-              <LineScoreTable state={state} />
+          {/* Right: line score and play-by-play */}
+          <aside className="flex min-h-0 flex-col gap-2 lg:col-span-2 lg:grid lg:grid-cols-2 lg:items-start xl:col-span-1 xl:flex xl:flex-col xl:items-stretch desk:min-h-0">
+            <Panel title={t("lineScore")} icon={<Table2 className="h-3 w-3 text-brand-gold" />}>
+              <LineScoreTable state={state} compact />
             </Panel>
 
-            <Panel title={t("playByPlay")}>
+            <Panel
+              title={t("playByPlay")}
+              icon={<MessageSquare className="h-3 w-3 text-live" />}
+              actions={
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                  {state.playByPlay.length}
+                </span>
+              }
+              className="desk:min-h-0 desk:flex-1"
+              bodyClassName="min-h-0 flex-1 overflow-y-auto"
+            >
               <PlayByPlayFeed
                 items={state.playByPlay}
                 awayCode={matchup.away.code}
@@ -313,7 +479,9 @@ export function GameDetailView({ state }: { state: CanonicalBaseballState }) {
           </aside>
         </div>
 
-        <p className="mt-6 text-center text-[11px] text-muted-foreground">{t("trackerNote")}</p>
+        <p className="hidden shrink-0 text-center text-[10px] text-muted-foreground desk:block">
+          {t("trackerNote")}
+        </p>
       </div>
     </div>
   );

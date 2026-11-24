@@ -57,6 +57,21 @@ export interface GameVenue {
   country?: string;
 }
 
+/** Lightweight row returned by discovery/list endpoints. */
+export interface GameSummary {
+  gameId: string;
+  league: LeagueCode;
+  status: GameStatus;
+  away: TeamIdentity;
+  home: TeamIdentity;
+  awayScore: number;
+  homeScore: number;
+  scheduledStart?: string;
+  inning?: number;
+  half?: GameHalf;
+  venue?: string;
+}
+
 /** A runner occupying a base, when the feed exposes their identity. */
 export interface BaseRunner {
   id?: string;

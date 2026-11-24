@@ -28,20 +28,24 @@ export function CountGrid({ count }: { count: CountState }) {
   return (
     <div className="grid grid-cols-3 gap-2">
       {groups.map((group) => (
-        <div key={group.label} className="rounded-lg border border-white/10 bg-white/5 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div key={group.label} className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
             {group.label}
           </p>
-          <p className={cn("font-display text-3xl font-black tabular-nums", group.text)}>
+          <p
+            className={cn("font-display text-2xl font-black leading-none tabular-nums", group.text)}
+          >
             {group.value}
           </p>
-          <div className="mt-2 flex gap-1">
+          <div className="mt-1.5 flex gap-1">
             {Array.from({ length: group.max }, (_, index) => (
               <span
                 key={index}
                 className={cn(
-                  "h-1.5 w-full rounded-full",
-                  index < group.value ? group.dot : "bg-white/10",
+                  "h-2.5 w-2.5 rounded-full transition-colors",
+                  index < group.value
+                    ? cn(group.dot, "shadow-[0_0_6px_currentColor]")
+                    : "bg-white/10",
                 )}
               />
             ))}
