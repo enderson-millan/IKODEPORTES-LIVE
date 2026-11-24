@@ -1,8 +1,16 @@
 @import "tailwindcss" source(none);
 @source "../src";
+@source "../app";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+/*
+ * `desk`: viewport wide AND tall enough to hold the whole live dashboard with no
+ * page scroll (1920x1080 canvas, 1600x900 laptops). Below it the dashboard keeps
+ * natural heights and the page scrolls instead of clipping panels.
+ */
+@custom-variant desk (@media (min-width: 1280px) and (min-height: 860px));
 
 /*
  * IKODEPORTES Live design system.
