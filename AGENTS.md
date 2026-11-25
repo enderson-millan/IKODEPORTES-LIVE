@@ -104,8 +104,11 @@ docker compose -f docker-compose.prod.yml up --build -d
 - **Realtime rooms.** `game:${gameId}` carries canonical state;
   `overlay:${gameId}` carries panel visibility. Room helpers live in
   `shared/realtime/contract.ts`.
-- **Trademark safety.** No league/club logos or names. Teams are 3-letter codes
-  plus own vector avatars.
+- **Team crests.** Club crests live in `public/teams/<name>.<ext>` and are
+  resolved by team code in `src/lib/team-logo.ts`; a feed-provided
+  `TeamIdentity.logoUrl` wins when present. Every badge keeps the 3-letter code
+  as fallback, so a missing asset never breaks a panel. Crests are club
+  trademarks: using them on streamed overlays is the project owner's call.
 - **Overlay transparency.** The OBS route lives outside `app/(site)` so no site
   chrome (header/footer) leaks into the canvas.
 
