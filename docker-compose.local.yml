@@ -74,7 +74,7 @@ services:
       PORT: 4000
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3100,https://live.ikodeportes.com}
       DATABASE_URL: postgresql://${DB_USER:-ikodeportes}:${DB_PASSWORD}@db:5432/${DB_NAME:-db_local}?schema=public
-      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-5000}
+      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-1000}
       LEAGUE: ${LEAGUE:-LVBP}
       LVBP_SPORT_ID: ${LVBP_SPORT_ID:-17}
       LVBP_LEAGUE_ID: ${LVBP_LEAGUE_ID:-135}

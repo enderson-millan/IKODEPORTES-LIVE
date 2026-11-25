@@ -31,7 +31,7 @@ services:
     environment:
       PORT: 4000
       CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
-      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-3000}
+      FEED_POLL_INTERVAL_MS: ${FEED_POLL_INTERVAL_MS:-1000}
       DATABASE_URL: postgresql://${DB_USER:-ikodeportes}:${DB_PASSWORD}@db_prod:5432/${DB_NAME:-db_prod}?schema=public
     ports:
       - "4000:4000"
