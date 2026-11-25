@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Activity,
   ArrowLeft,
@@ -19,6 +20,7 @@ import type {
   GameSummary,
   PitchResult,
 } from "@shared/types/baseball-state";
+import type { LiveConnection } from "@/hooks/use-live-game";
 import { useApp } from "@/lib/app-context";
 import {
   STATUS_LABEL_KEY,
@@ -118,6 +120,60 @@ function CountChip({
 }
 
 /**
+ * "hace N s" desde la ultima vez que normalizamos un estado. No renderiza nada
+ * hasta montar, para que el server y el primer render del cliente coincidan, y
+ * luego late cada segundo: un feed silencioso se ve como silencio, no como una
+ * pagina rota.
+ */
+/**
+ * The upstream publishes every ~25-33 s measured, so three missed cycles is a
+ * stall and not a quiet inning. Surfacing it matters on air: an operator must
+ * know the overlay is showing old data.
+ */
+const STALE_AFTER_SECONDS = 90;
+
+function Freshness({ timestamp, live }: { timestamp?: string; live?: boolean }) {
+  const { t } = useApp();
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Before mount both sides must render the same thing.
+  if (!timestamp || now === null) {
+    return (
+      <span className="flex items-center gap-1">
+        <Clock3 className="h-3 w-3" />
+        {t("lastUpdated")}: —
+      </span>
+    );
+  }
+
+  const seconds = Math.max(0, Math.round((now - Date.parse(timestamp)) / 1000));
+  const label =
+    seconds < 60 ? `${t("ago")} ${seconds} s` : `${t("ago")} ${Math.floor(seconds / 60)} min`;
+  const stale = Boolean(live) && seconds >= STALE_AFTER_SECONDS;
+
+  return (
+    <span className="flex items-center gap-1">
+      <Clock3 className="h-3 w-3" />
+      {t("lastUpdated")}:<span className="tabular-nums">{label}</span>
+      {stale && (
+        <span
+          title={t("staleFeedHint")}
+          className="ml-1 rounded border border-destructive/40 bg-destructive/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-destructive"
+        >
+          {t("staleFeed")}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
  * Single-screen data center. Above the `desk` threshold the whole game fits the
  * viewport and only the defense list and the play-by-play scroll inside their
  * panels; below it panels keep natural heights and the page scrolls.
@@ -125,9 +181,11 @@ function CountChip({
 export function GameDetailView({
   state,
   slate = [],
+  connection = "live",
 }: {
   state: CanonicalBaseballState;
   slate?: GameSummary[];
+  connection?: LiveConnection;
 }) {
   const { t } = useApp();
   const { matchup, score, clock, count, bases, atBat, onDeck, defense } = state;
@@ -190,15 +248,31 @@ export function GameDetailView({
                 {stamp(state.scheduledStart)}
               </span>
               <span className="flex items-center gap-1">
-                <Clock3 className="h-3 w-3" />
-                {t("lastUpdated")}: {stamp(state.updatedAt)}
+                <Freshness timestamp={state.source.fetchedAt} live={live} />
+              </span>
+              <span className="flex items-center gap-1">
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    connection === "live"
+                      ? "bg-live"
+                      : connection === "offline"
+                        ? "bg-destructive"
+                        : "animate-pulse bg-brand-gold",
+                  )}
+                />
+                {connection === "offline"
+                  ? t("noConnection")
+                  : connection === "connecting"
+                    ? t("reconnecting")
+                    : t("navLive")}
               </span>
             </span>
           </div>
 
           <div className="grid grid-cols-1 items-center gap-2 px-3 py-2 sm:grid-cols-[1fr_auto_1fr]">
             <div className="flex min-w-0 items-center gap-2">
-              <TeamBadge team={matchup.away} size={42} />
+              <TeamBadge team={matchup.away} size={52} />
               <div className="min-w-0">
                 <p className="truncate font-display text-base font-black uppercase leading-none tracking-wide">
                   {matchup.away.name}
@@ -243,7 +317,7 @@ export function GameDetailView({
                   {matchup.home.code}
                 </p>
               </div>
-              <TeamBadge team={matchup.home} size={42} />
+              <TeamBadge team={matchup.home} size={52} />
             </div>
           </div>
         </header>

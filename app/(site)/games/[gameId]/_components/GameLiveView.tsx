@@ -18,7 +18,7 @@ interface GameLiveViewProps {
  */
 export function GameLiveView({ gameId, wsUrl, initialState, slate = [] }: GameLiveViewProps) {
   const { t } = useApp();
-  const { state } = useLiveGame(gameId, { wsUrl, fallback: initialState });
+  const { state, connection } = useLiveGame(gameId, { wsUrl, fallback: initialState });
 
   if (!state) {
     return (
@@ -30,5 +30,5 @@ export function GameLiveView({ gameId, wsUrl, initialState, slate = [] }: GameLi
     );
   }
 
-  return <GameDetailView state={state} slate={slate} />;
+  return <GameDetailView state={state} slate={slate} connection={connection} />;
 }
