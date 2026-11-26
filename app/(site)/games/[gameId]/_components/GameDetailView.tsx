@@ -552,10 +552,6 @@ export function GameDetailView({
             </Panel>
           </aside>
         </div>
-
-        <p className="hidden shrink-0 text-center text-[10px] text-muted-foreground desk:block">
-          {t("trackerNote")}
-        </p>
       </div>
     </div>
   );
