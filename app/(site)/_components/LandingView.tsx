@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Languages, Radio, ShieldCheck, Tv2 } from "lucide-react";
+import { ArrowRight, ClipboardList, Languages, Radio, ShieldCheck, Tv2 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { BrandLogo, BrandWordmark } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,12 @@ export function LandingView() {
     { icon: Tv2, title: t("featureOverlayTitle"), desc: t("featureOverlayDesc") },
     { icon: Radio, title: t("featureAgnosticTitle"), desc: t("featureAgnosticDesc") },
     { icon: Languages, title: t("featureI18nTitle"), desc: t("featureI18nDesc") },
+    {
+      icon: ClipboardList,
+      title: t("featureTrackerTitle"),
+      desc: t("featureTrackerDesc"),
+      upcoming: true,
+    },
   ];
 
   return (
@@ -132,14 +138,25 @@ export function LandingView() {
       </section>
 
       <section className="border-t border-white/10 bg-surface-1/60">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-          {features.map(({ icon: Icon, title, desc }) => (
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 xl:grid-cols-5">
+          {features.map(({ icon: Icon, title, desc, upcoming }) => (
             <article
               key={title}
-              className="rounded-xl border border-white/10 bg-surface-2/60 p-5 transition-colors hover:border-brand-gold/30"
+              className={
+                upcoming
+                  ? "rounded-xl border border-dashed border-brand-gold/35 bg-surface-2/30 p-5"
+                  : "rounded-xl border border-white/10 bg-surface-2/60 p-5 transition-colors hover:border-brand-gold/30"
+              }
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-blue-strong/20 text-brand-gold-ink">
-                <Icon className="h-5 w-5" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-blue-strong/20 text-brand-gold-ink">
+                  <Icon className="h-5 w-5" />
+                </div>
+                {upcoming && (
+                  <span className="rounded border border-brand-gold/40 bg-brand-gold/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-brand-gold-ink">
+                    {t("comingSoon")}
+                  </span>
+                )}
               </div>
               <h2 className="mt-4 font-display text-lg font-bold uppercase tracking-wide">
                 {title}

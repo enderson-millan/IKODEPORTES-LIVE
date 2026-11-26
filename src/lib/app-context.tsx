@@ -93,6 +93,18 @@ export const dict: Dict = {
     EN: "Interface in Spanish, Portuguese and English, with Spanish as the default.",
   },
 
+  featureTrackerTitle: {
+    ES: "Tracker manual",
+    PT: "Tracker manual",
+    EN: "Manual tracker",
+  },
+  featureTrackerDesc: {
+    ES: "El operador registra cada jugada y el overlay responde al instante, sin depender de la latencia del proveedor.",
+    PT: "O operador registra cada jogada e o overlay responde na hora, sem depender da latência do provedor.",
+    EN: "The operator records each play and the overlay answers instantly, without depending on provider latency.",
+  },
+  comingSoon: { ES: "Próximamente", PT: "Em breve", EN: "Coming soon" },
+
   // ── Games list ────────────────────────────────────────────────────────────
   gamesTitle: { ES: "Partidos", PT: "Jogos", EN: "Games" },
   gamesSubtitle: {
