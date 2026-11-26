@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, LogOut, Menu, Moon, Radio, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Radio } from "lucide-react";
 import { useApp, type Lang } from "@/lib/app-context";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { BrandLogo, BrandWordmark } from "@/components/brand/BrandLogo";
@@ -46,13 +45,9 @@ function FlagImage({ countryCode, size = 18 }: { countryCode: string; size?: num
 }
 
 export function AppHeader() {
-  const { theme, toggleTheme, lang, setLang, t, user } = useApp();
+  const { lang, setLang, t, user } = useApp();
   const pathname = usePathname();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
   const navItems = [
     { to: "/games", label: t("navGames") },
     { to: "/games/demo-live", label: t("demoBadge") },
@@ -195,24 +190,6 @@ export function AppHeader() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label={t("theme")}
-              className="h-8 w-8"
-            >
-              {mounted ? (
-                theme === "light" ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Sun className="h-4 w-4" />
-                )
-              ) : (
-                <span className="h-4 w-4" />
-              )}
-            </Button>
 
             {user ? (
               <DropdownMenu>

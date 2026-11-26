@@ -6,7 +6,9 @@ export default function OverlayLayout({ children }: { children: React.ReactNode 
   return (
     <>
       <style>{`html, body { background: transparent !important; overflow: hidden; }`}</style>
-      {children}
+      {/* OBS canvas: never follow the viewer's theme, or a light-mode toggle in the
+          site would repaint the overlay over the broadcast. */}
+      <div className="dark">{children}</div>
     </>
   );
 }

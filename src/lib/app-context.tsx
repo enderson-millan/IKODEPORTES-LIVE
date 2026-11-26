@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useTheme } from "next-themes";
 
 export type Lang = "PT" | "ES" | "EN";
 
@@ -50,7 +49,6 @@ export const dict: Dict = {
     EN: "Continue as spectator",
   },
   language: { ES: "Idioma", PT: "Idioma", EN: "Language" },
-  theme: { ES: "Tema", PT: "Tema", EN: "Theme" },
 
   // ── Landing ───────────────────────────────────────────────────────────────
   heroEyebrow: {
@@ -203,8 +201,6 @@ export interface AppUser {
 interface AppContextType {
   lang: Lang;
   setLang: (l: Lang) => void;
-  theme: "light" | "dark";
-  toggleTheme: () => void;
   t: (k: keyof typeof dict) => string;
   user: AppUser | null;
   setUser: (u: AppUser | null) => void;
@@ -215,7 +211,6 @@ const AppCtx = createContext<AppContextType | null>(null);
 function AppProviderInner({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
   const [user, setUser] = useState<AppUser | null>(null);
-  const { resolvedTheme, setTheme } = useTheme();
 
   // Rehydrate lang from localStorage (Spanish stays the default).
   useEffect(() => {
@@ -233,19 +228,11 @@ function AppProviderInner({ children }: { children: ReactNode }) {
     }
   };
 
-  const theme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
     <AppCtx.Provider
       value={{
         lang,
         setLang,
-        theme,
-        toggleTheme,
         t: (k) => dict[k]?.[lang] ?? String(k),
         user,
         setUser,
