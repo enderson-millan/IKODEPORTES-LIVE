@@ -49,12 +49,12 @@ const PITCH_RESULT_KEY: Record<PitchResult, string> = {
 };
 
 const PITCH_RESULT_CLASS: Record<PitchResult, string> = {
-  BALL: "bg-brand-blue/20 text-brand-blue",
-  CALLED_STRIKE: "bg-brand-gold/20 text-brand-gold",
-  SWINGING_STRIKE: "bg-brand-gold/20 text-brand-gold",
+  BALL: "bg-brand-blue/20 text-brand-blue-ink",
+  CALLED_STRIKE: "bg-brand-gold/20 text-brand-gold-ink",
+  SWINGING_STRIKE: "bg-brand-gold/20 text-brand-gold-ink",
   FOUL: "bg-white/10 text-foreground",
   IN_PLAY: "bg-emerald-500/20 text-emerald-300",
-  HIT_BY_PITCH: "bg-live/20 text-live",
+  HIT_BY_PITCH: "bg-live/20 text-live-ink",
   OTHER: "bg-white/10 text-muted-foreground",
 };
 
@@ -227,7 +227,7 @@ export function GameDetailView({
             <span
               className={cn(
                 "rounded px-1.5 py-0.5 text-[9px] font-bold",
-                live ? "bg-live/20 text-live" : "bg-white/10 text-muted-foreground",
+                live ? "bg-live/20 text-live-ink" : "bg-white/10 text-muted-foreground",
               )}
             >
               {statusLabel}
@@ -281,7 +281,7 @@ export function GameDetailView({
                   {matchup.away.code}
                 </p>
               </div>
-              <p className="ml-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold">
+              <p className="ml-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold-ink">
                 {score.away}
               </p>
             </div>
@@ -294,19 +294,19 @@ export function GameDetailView({
                 <CountChip
                   label="B"
                   value={count.balls}
-                  className="bg-brand-blue/20 text-brand-blue"
+                  className="bg-brand-blue/20 text-brand-blue-ink"
                 />
                 <CountChip
                   label="S"
                   value={count.strikes}
-                  className="bg-brand-gold/20 text-brand-gold"
+                  className="bg-brand-gold/20 text-brand-gold-ink"
                 />
-                <CountChip label="O" value={count.outs} className="bg-live/20 text-live" />
+                <CountChip label="O" value={count.outs} className="bg-live/20 text-live-ink" />
               </div>
             </div>
 
             <div className="flex min-w-0 items-center gap-2">
-              <p className="mr-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold">
+              <p className="mr-auto font-display text-4xl font-black leading-none tabular-nums text-brand-gold-ink">
                 {score.home}
               </p>
               <div className="min-w-0 text-right">
@@ -326,11 +326,11 @@ export function GameDetailView({
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,258px)_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px] desk:min-h-0 desk:flex-1">
           {/* Left: count, bases, on-deck, defense */}
           <aside className="flex min-h-0 flex-col gap-2">
-            <Panel title={t("count")} icon={<Activity className="h-3 w-3 text-brand-blue" />}>
+            <Panel title={t("count")} icon={<Activity className="h-3 w-3 text-brand-blue-ink" />}>
               <CountGrid count={count} />
             </Panel>
 
-            <Panel title={t("bases")} icon={<Diamond className="h-3 w-3 text-brand-gold" />}>
+            <Panel title={t("bases")} icon={<Diamond className="h-3 w-3 text-brand-gold-ink" />}>
               <div className="flex items-center gap-2">
                 <BasesDiamond bases={bases} className="h-20 w-20 shrink-0" />
                 {baseRows.length === 0 ? (
@@ -339,7 +339,7 @@ export function GameDetailView({
                   <ul className="min-w-0 space-y-1">
                     {baseRows.map((row) => (
                       <li key={row.label} className="flex items-center gap-1.5 text-[11px]">
-                        <span className="rounded bg-brand-gold/20 px-1 font-display text-[9px] font-black text-brand-gold">
+                        <span className="rounded bg-brand-gold/20 px-1 font-display text-[9px] font-black text-brand-gold-ink">
                           {row.label}
                         </span>
                         <span className="truncate">{row.runner?.name ?? "—"}</span>
@@ -380,7 +380,7 @@ export function GameDetailView({
 
             <Panel
               title={t("defense")}
-              icon={<Users className="h-3 w-3 text-brand-gold" />}
+              icon={<Users className="h-3 w-3 text-brand-gold-ink" />}
               actions={
                 <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                   {defense.length}
@@ -395,7 +395,7 @@ export function GameDetailView({
                     key={`${slot.position}-${slot.playerName}`}
                     className="flex items-center gap-2 rounded px-1 py-0.5 text-[11px] odd:bg-white/5"
                   >
-                    <span className="w-7 shrink-0 rounded bg-brand-gold/15 text-center font-display text-[9px] font-black uppercase text-brand-gold">
+                    <span className="w-7 shrink-0 rounded bg-brand-gold/15 text-center font-display text-[9px] font-black uppercase text-brand-gold-ink">
                       {slot.position}
                     </span>
                     <span className="truncate">{slot.playerName}</span>
@@ -414,10 +414,10 @@ export function GameDetailView({
           <section className="flex min-h-0 flex-col gap-2">
             <Panel
               title={t("atBat")}
-              icon={<Swords className="h-3 w-3 text-live" />}
+              icon={<Swords className="h-3 w-3 text-live-ink" />}
               actions={
                 lastPitch && (
-                  <span className="font-display text-[9px] font-black uppercase tracking-widest text-brand-gold">
+                  <span className="font-display text-[9px] font-black uppercase tracking-widest text-brand-gold-ink">
                     {formatPitchSpeed(lastPitch)} · {PITCH_RESULT_KEY[lastPitch.result]}
                   </span>
                 )
@@ -426,7 +426,7 @@ export function GameDetailView({
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="rounded-lg border border-brand-blue/30 bg-brand-blue-strong/20 px-2 py-1.5">
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-blue">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-blue-ink">
                       {t("batter")}
                     </p>
                     {atBat?.batter.bats && (
@@ -452,7 +452,7 @@ export function GameDetailView({
 
                 <div className="rounded-lg border border-brand-gold/25 bg-brand-gold/10 px-2 py-1.5">
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-gold">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-brand-gold-ink">
                       {t("pitcher")}
                     </p>
                     {atBat?.pitcher.throws && (
@@ -515,7 +515,7 @@ export function GameDetailView({
                           {PITCH_RESULT_KEY[pitch.result]}
                         </span>
                         <span className="text-[11px]">{pitch.type}</span>
-                        <span className="font-display text-[11px] font-bold tabular-nums text-brand-gold">
+                        <span className="font-display text-[11px] font-bold tabular-nums text-brand-gold-ink">
                           {formatPitchSpeed(pitch)}
                         </span>
                       </div>
@@ -529,13 +529,13 @@ export function GameDetailView({
 
           {/* Right: line score and play-by-play */}
           <aside className="flex min-h-0 flex-col gap-2 lg:col-span-2 lg:grid lg:grid-cols-2 lg:items-start xl:col-span-1 xl:flex xl:flex-col xl:items-stretch desk:min-h-0">
-            <Panel title={t("lineScore")} icon={<Table2 className="h-3 w-3 text-brand-gold" />}>
+            <Panel title={t("lineScore")} icon={<Table2 className="h-3 w-3 text-brand-gold-ink" />}>
               <LineScoreTable state={state} compact />
             </Panel>
 
             <Panel
               title={t("playByPlay")}
-              icon={<MessageSquare className="h-3 w-3 text-live" />}
+              icon={<MessageSquare className="h-3 w-3 text-live-ink" />}
               actions={
                 <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                   {state.playByPlay.length}

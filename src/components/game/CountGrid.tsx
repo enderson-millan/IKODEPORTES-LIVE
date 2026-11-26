@@ -13,16 +13,16 @@ export function CountGrid({ count }: { count: CountState }) {
       value: count.balls,
       max: 4,
       dot: "bg-brand-blue",
-      text: "text-brand-blue",
+      text: "text-brand-blue-ink",
     },
     {
       label: t("strikes"),
       value: count.strikes,
       max: 3,
       dot: "bg-brand-gold",
-      text: "text-brand-gold",
+      text: "text-brand-gold-ink",
     },
-    { label: t("outs"), value: count.outs, max: 3, dot: "bg-live", text: "text-live" },
+    { label: t("outs"), value: count.outs, max: 3, dot: "bg-live", text: "text-live-ink" },
   ];
 
   return (

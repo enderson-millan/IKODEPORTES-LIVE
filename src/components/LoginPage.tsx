@@ -32,7 +32,7 @@ export function LoginPage() {
         <div className="flex flex-col items-center gap-3">
           <BrandLogo size={84} priority className="ring-gold" />
           <BrandWordmark withLive={false} className="text-xl" />
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold">
+          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold-ink">
             {t("tagline")}
           </p>
         </div>

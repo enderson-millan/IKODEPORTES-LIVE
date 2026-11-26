@@ -75,14 +75,18 @@
 
   /* Brand tokens */
   --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-ink: var(--brand-gold-ink);
   --color-brand-gold-strong: var(--brand-gold-strong);
   --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-ink: var(--brand-blue-ink);
   --color-brand-blue-strong: var(--brand-blue-strong);
   --color-brand-red: var(--brand-red);
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-live: var(--live);
+  --color-live-ink: var(--live-ink);
+  --color-live-badge: var(--live-badge);
 }
 
 :root {
@@ -122,14 +126,18 @@
   --sidebar-ring: oklch(0.795 0.184 86.047);
 
   --brand-gold: oklch(0.852 0.199 91.936);
+  --brand-gold-ink: oklch(0.55 0.16 88);
   --brand-gold-strong: oklch(0.795 0.184 86.047);
   --brand-blue: oklch(0.546 0.245 262.881);
+  --brand-blue-ink: oklch(0.546 0.245 262.881);
   --brand-blue-strong: oklch(0.488 0.243 264.376);
   --brand-red: oklch(0.637 0.237 25.331);
   --surface-1: oklch(0.975 0.006 250);
   --surface-2: oklch(0.955 0.01 250);
   --surface-3: oklch(0.925 0.016 252);
   --live: oklch(0.637 0.237 25.331);
+  --live-ink: oklch(0.53 0.2 27);
+  --live-badge: oklch(0.53 0.2 27);
 }
 
 .dark {
@@ -167,14 +175,18 @@
   --sidebar-ring: oklch(0.852 0.199 91.936);
 
   --brand-gold: oklch(0.852 0.199 91.936);
+  --brand-gold-ink: oklch(0.852 0.199 91.936);
   --brand-gold-strong: oklch(0.795 0.184 86.047);
   --brand-blue: oklch(0.546 0.245 262.881);
+  --brand-blue-ink: oklch(0.78 0.13 262);
   --brand-blue-strong: oklch(0.488 0.243 264.376);
   --brand-red: oklch(0.637 0.237 25.331);
   --surface-1: oklch(0.155 0.031 262);
   --surface-2: oklch(0.225 0.045 261);
   --surface-3: oklch(0.275 0.055 261);
   --live: oklch(0.637 0.237 25.331);
+  --live-ink: oklch(0.68 0.2 25.331);
+  --live-badge: oklch(0.53 0.2 27);
 }
 
 @layer base {

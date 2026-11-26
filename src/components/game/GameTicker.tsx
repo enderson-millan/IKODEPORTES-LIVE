@@ -62,7 +62,7 @@ export function GameTicker({ games, activeGameId }: GameTickerProps) {
                 <span
                   className={cn(
                     "ml-0.5 rounded px-1 py-0.5 text-[8px] font-bold uppercase tracking-widest",
-                    live ? "bg-live/20 text-live" : "bg-white/10 text-muted-foreground",
+                    live ? "bg-live/20 text-live-ink" : "bg-white/10 text-muted-foreground",
                   )}
                 >
                   {statusText}
