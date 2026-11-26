@@ -13,6 +13,9 @@ export const TEAM_LOGOS: Record<string, string> = {
   LAG: "/teams/tiburones.png",
   ZUL: "/teams/aguilas.png",
   LAR: "/teams/cardenales.png",
+  ARA: "/teams/tigres.png",
+  MAR: "/teams/bravos.png",
+  ORI: "/teams/caribes.png",
 };
 
 /** Crest path for a team code, or `undefined` when none is registered. */

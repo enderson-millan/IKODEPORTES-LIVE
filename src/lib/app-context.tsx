@@ -172,11 +172,6 @@ export const dict: Dict = {
   connecting: { ES: "Conectando", PT: "Conectando", EN: "Connecting" },
   offline: { ES: "Sin conexión", PT: "Sem conexão", EN: "Offline" },
   gameNotFound: { ES: "Partido no encontrado", PT: "Jogo não encontrado", EN: "Game not found" },
-  trackerNote: {
-    ES: "Vista del contrato canónico. El tracker modular completo y el overlay de OBS llegan en la Fase 3.",
-    PT: "Visão do contrato canônico. O tracker modular completo e o overlay do OBS chegam na Fase 3.",
-    EN: "Canonical contract preview. The full modular tracker and the OBS overlay arrive in phase 3.",
-  },
   lastUpdated: { ES: "Actualizado", PT: "Atualizado", EN: "Updated" },
 
   // ── Login ─────────────────────────────────────────────────────────────────
