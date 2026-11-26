@@ -234,7 +234,7 @@ export function OverlayView({ gameId, wsUrl, panels }: OverlayViewProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       {[
-                        { label: "B", value: state.count.balls, tone: "text-brand-blue" },
+                        { label: "B", value: state.count.balls, tone: "text-brand-blue-ink" },
                         { label: "S", value: state.count.strikes, tone: "text-brand-gold" },
                         { label: "O", value: state.count.outs, tone: "text-live" },
                       ].map((item) => (
@@ -267,7 +267,7 @@ export function OverlayView({ gameId, wsUrl, panels }: OverlayViewProps) {
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <div className="rounded-xl bg-brand-blue-strong/20 p-3">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-blue">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-blue-ink">
                           {t("batter")}
                         </p>
                         <p className="mt-1 truncate font-display text-[20px] font-black uppercase leading-tight">

@@ -29,7 +29,7 @@ export function GamesListView({
     <div className="bg-stadium min-h-[calc(100vh-4rem)] pb-14">
       <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
         <header className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand-gold/30 bg-brand-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-gold">
+          <span className="inline-flex items-center gap-2 rounded-full border border-brand-gold/30 bg-brand-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-gold-ink">
             <Radio className="h-3 w-3" />
             {t("navLive")}
           </span>
@@ -40,7 +40,7 @@ export function GamesListView({
         </header>
 
         {apiOffline && (
-          <p className="mt-4 rounded-lg border border-brand-gold/25 bg-brand-gold/5 px-3 py-2 text-xs text-brand-gold">
+          <p className="mt-4 rounded-lg border border-brand-gold/25 bg-brand-gold/5 px-3 py-2 text-xs text-brand-gold-ink">
             {t("apiOffline")}
           </p>
         )}
@@ -65,7 +65,7 @@ export function GamesListView({
                     <span
                       className={cn(
                         "rounded px-1.5 py-0.5",
-                        live ? "bg-live/20 text-live" : "bg-white/10 text-muted-foreground",
+                        live ? "bg-live/20 text-live-ink" : "bg-white/10 text-muted-foreground",
                       )}
                     >
                       {t(STATUS_LABEL_KEY[game.status])}
@@ -86,7 +86,7 @@ export function GamesListView({
                         <span className="min-w-0 flex-1 truncate font-display text-sm font-bold uppercase">
                           {team.name}
                         </span>
-                        <span className="font-display text-xl font-black tabular-nums text-brand-gold">
+                        <span className="font-display text-xl font-black tabular-nums text-brand-gold-ink">
                           {score}
                         </span>
                       </div>
@@ -105,13 +105,13 @@ export function GamesListView({
                       </span>
                     )}
                     {live && game.inning && (
-                      <span className="rounded bg-brand-gold/15 px-1.5 py-0.5 font-bold text-brand-gold">
+                      <span className="rounded bg-brand-gold/15 px-1.5 py-0.5 font-bold text-brand-gold-ink">
                         {game.inning}° {game.half === "BOTTOM" ? "▼" : "▲"}
                       </span>
                     )}
                   </div>
 
-                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-gold">
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-gold-ink">
                     {t("openGame")}
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>

@@ -14,7 +14,7 @@ function MiniScoreboard() {
   return (
     <div className="w-full max-w-md rounded-2xl border border-white/10 bg-surface-2/80 p-5 shadow-2xl backdrop-blur">
       <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        <span className="flex items-center gap-1.5 text-live">
+        <span className="flex items-center gap-1.5 text-live-ink">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-live opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-live" />
@@ -39,7 +39,7 @@ function MiniScoreboard() {
           </span>
         </div>
 
-        <div className="font-display text-4xl font-black tabular-nums text-brand-gold">
+        <div className="font-display text-4xl font-black tabular-nums text-brand-gold-ink">
           {score.away}
           <span className="mx-1 text-muted-foreground">-</span>
           {score.home}
@@ -60,13 +60,13 @@ function MiniScoreboard() {
 
       <div className="mt-4 flex items-center justify-center gap-2 font-display text-xs font-bold uppercase tracking-widest">
         <span className="rounded bg-white/5 px-2 py-1">
-          B <span className="text-brand-gold tabular-nums">{count.balls}</span>
+          B <span className="text-brand-gold-ink tabular-nums">{count.balls}</span>
         </span>
         <span className="rounded bg-white/5 px-2 py-1">
-          S <span className="text-brand-gold tabular-nums">{count.strikes}</span>
+          S <span className="text-brand-gold-ink tabular-nums">{count.strikes}</span>
         </span>
         <span className="rounded bg-white/5 px-2 py-1">
-          O <span className="text-brand-gold tabular-nums">{count.outs}</span>
+          O <span className="text-brand-gold-ink tabular-nums">{count.outs}</span>
         </span>
       </div>
     </div>
@@ -87,7 +87,7 @@ export function LandingView() {
     <div className="bg-stadium min-h-[calc(100vh-4rem)]">
       <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand-gold/30 bg-brand-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-gold">
+          <span className="inline-flex items-center gap-2 rounded-full border border-brand-gold/30 bg-brand-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-gold-ink">
             <Radio className="h-3.5 w-3.5" />
             {t("heroEyebrow")}
           </span>
@@ -96,7 +96,7 @@ export function LandingView() {
             <BrandLogo size={64} priority className="ring-gold" />
             <div>
               <BrandWordmark className="text-2xl" />
-              <p className="font-display text-xs font-semibold uppercase tracking-[0.32em] text-brand-gold">
+              <p className="font-display text-xs font-semibold uppercase tracking-[0.32em] text-brand-gold-ink">
                 {t("tagline")}
               </p>
             </div>
@@ -138,7 +138,7 @@ export function LandingView() {
               key={title}
               className="rounded-xl border border-white/10 bg-surface-2/60 p-5 transition-colors hover:border-brand-gold/30"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-blue-strong/20 text-brand-gold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-blue-strong/20 text-brand-gold-ink">
                 <Icon className="h-5 w-5" />
               </div>
               <h2 className="mt-4 font-display text-lg font-bold uppercase tracking-wide">
@@ -151,7 +151,7 @@ export function LandingView() {
 
         <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">
           <div className="rounded-xl border border-brand-gold/25 bg-brand-gold/5 p-5">
-            <h2 className="font-display text-base font-bold uppercase tracking-widest text-brand-gold">
+            <h2 className="font-display text-base font-bold uppercase tracking-widest text-brand-gold-ink">
               {t("phaseTitle")}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("phaseDesc")}</p>

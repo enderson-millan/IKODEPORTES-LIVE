@@ -33,11 +33,11 @@ export function BrandWordmark({ className, withLive = true }: BrandWordmarkProps
   return (
     <span className={cn("flex items-center gap-2", className)}>
       <span className="font-display text-lg font-extrabold uppercase leading-none tracking-wide">
-        <span className="text-brand-gold">IKO</span>
+        <span className="text-brand-gold-ink">IKO</span>
         <span className="text-foreground">DEPORTES</span>
       </span>
       {withLive && (
-        <span className="rounded-sm bg-live px-1.5 py-0.5 text-[10px] font-black uppercase leading-none tracking-widest text-white">
+        <span className="rounded-sm bg-live-badge px-1.5 py-0.5 text-[10px] font-black uppercase leading-none tracking-widest text-white">
           Live
         </span>
       )}

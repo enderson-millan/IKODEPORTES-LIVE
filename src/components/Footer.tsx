@@ -20,7 +20,7 @@ export function Footer() {
             {BRAND.name}
           </span>
           <span aria-hidden="true">·</span>
-          <span className="font-semibold uppercase tracking-widest text-brand-gold">
+          <span className="font-semibold uppercase tracking-widest text-brand-gold-ink">
             {BRAND.slogan}
           </span>
         </div>

@@ -34,7 +34,7 @@ function TeamRow({
         scope="row"
         className={cn("whitespace-nowrap text-left", compact ? "py-1 pr-1" : "py-2 pr-3")}
       >
-        <span className="font-display text-xs font-black uppercase text-brand-gold">
+        <span className="font-display text-xs font-black uppercase text-brand-gold-ink">
           {team.code}
         </span>
         <span className="ml-1.5 hidden text-xs text-muted-foreground sm:inline">
@@ -53,7 +53,7 @@ function TeamRow({
                 ? "px-0.5 py-1 text-center tabular-nums"
                 : "px-1 py-2 text-center tabular-nums",
               active
-                ? "bg-live/25 font-display font-black text-live ring-1 ring-inset ring-live/40"
+                ? "bg-live/25 font-display font-black text-live-ink ring-1 ring-inset ring-live/40"
                 : "text-foreground/80",
             )}
           >
@@ -61,7 +61,7 @@ function TeamRow({
           </td>
         );
       })}
-      <td className="px-1 py-2 text-center font-bold tabular-nums text-brand-gold">{line.runs}</td>
+      <td className="px-1 py-2 text-center font-bold tabular-nums text-brand-gold-ink">{line.runs}</td>
       <td className="px-1 py-2 text-center tabular-nums text-muted-foreground">{line.hits}</td>
       <td className="px-1 py-2 text-center tabular-nums text-muted-foreground">{line.errors}</td>
     </tr>
