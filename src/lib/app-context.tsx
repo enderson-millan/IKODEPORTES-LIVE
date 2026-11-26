@@ -92,16 +92,6 @@ export const dict: Dict = {
     PT: "Interface em espanhol, português e inglês com o espanhol como idioma padrão.",
     EN: "Interface in Spanish, Portuguese and English, with Spanish as the default.",
   },
-  phaseTitle: {
-    ES: "Base lista: contrato, feed y overlay",
-    PT: "Base pronta: contrato, feed e overlay",
-    EN: "Foundation ready: contract, feed and overlay",
-  },
-  phaseDesc: {
-    ES: "Contrato canónico compartido, esquema Prisma, feed de MLB StatsAPI con polling y deduplicación, overlay de OBS con once paneles y despliegue Docker/Dokploy. Lo que sigue es el tracker manual del operador.",
-    PT: "Contrato canônico compartilhado, esquema Prisma, feed da MLB StatsAPI com polling e deduplicação, overlay de OBS com onze painéis e implantação Docker/Dokploy. O próximo passo é o tracker manual do operador.",
-    EN: "Shared canonical contract, Prisma schema, MLB StatsAPI feed with polling and deduplication, an eleven-panel OBS overlay and Docker/Dokploy deployment. The operator's manual tracker is what comes next.",
-  },
 
   // ── Games list ────────────────────────────────────────────────────────────
   gamesTitle: { ES: "Partidos", PT: "Jogos", EN: "Games" },

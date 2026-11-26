@@ -148,15 +148,6 @@ export function LandingView() {
             </article>
           ))}
         </div>
-
-        <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">
-          <div className="rounded-xl border border-brand-gold/25 bg-brand-gold/5 p-5">
-            <h2 className="font-display text-base font-bold uppercase tracking-widest text-brand-gold-ink">
-              {t("phaseTitle")}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("phaseDesc")}</p>
-          </div>
-        </div>
       </section>
     </div>
   );
