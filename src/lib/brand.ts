@@ -1,9 +1,11 @@
 /**
  * Single source of truth for IKODEPORTES Live brand assets and copy.
  *
- * The circular logo is an own vector (S12: no league/club trademarks). To use
- * the official raster artwork, drop `logo-circular.jpg` into `public/images/`
- * and point `logo.src` at it — nothing else needs to change.
+ * `logo-circular.svg` is the own vector master (used when a crisp mark is
+ * needed); `logo-circular.jpg` is the official raster artwork (638x638) and is
+ * the one wired below. Paths are lowercase on purpose: the containers run on a
+ * case-sensitive filesystem, so `LOGO-CIRCULAR.jpg` would 404 in production
+ * while still working on Windows.
  */
 export const BRAND = {
   /** Product name, used in `<title>` and the header. */
@@ -15,10 +17,10 @@ export const BRAND = {
   /** Public web app origin. */
   siteUrl: "https://live.ikodeportes.com",
   logo: {
-    src: "/images/logo-circular.svg",
+    src: "/images/logo-circular.jpg",
     alt: "IKODEPORTES",
-    width: 512,
-    height: 512,
+    width: 638,
+    height: 638,
   },
   colors: {
     night: "#070D1A",
