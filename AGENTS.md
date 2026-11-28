@@ -73,6 +73,7 @@ tracker UI and the feed adapters land in Phase 3.
 ├── Dockerfile                    # targets: web | api
 ├── docker-compose.test.yml       # :3001 web · :4001 api · :5433 db_test
 ├── docker-compose.prod.yml       # :3000 web · :4000 api · :5432 db_prod
+├── docs/deploy-topology.md       # what runs where: local, Vercel, OBS, tunnel
 └── docs/dokploy-setup.md         # env vars + deploy steps
 ```
 
